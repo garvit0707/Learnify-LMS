@@ -80,10 +80,14 @@ const moveDirectories = async (userInput) => {
     await fs.promises.writeFile(indexPath, indexContent);
     console.log("📄 app/index.tsx created.");
 
-    // Create _layout.tsx
-    const layoutPath = path.join(newAppDirPath, "_layout.tsx");
+    // // Create _layout.tsx
+    // const layoutPath = path.join(newAppDirPath, "_layout.tsx");
+    // await fs.promises.writeFile(layoutPath, layoutContent);
+    // console.log("📄 app/_layout.tsx created.");
+
+    const layoutPath = path.join(newAppDirPath, "App.tsx");
     await fs.promises.writeFile(layoutPath, layoutContent);
-    console.log("📄 app/_layout.tsx created.");
+    console.log("the new layout has become app.tsx file");
 
     console.log("\n✅ Project reset complete. Next steps:");
     console.log(
@@ -91,7 +95,7 @@ const moveDirectories = async (userInput) => {
         userInput === "y"
           ? `\n3. Delete the /${exampleDir} directory when you're done referencing it.`
           : ""
-      }`
+      }`,
     );
   } catch (error) {
     console.error(`❌ Error during script execution: ${error.message}`);
@@ -108,5 +112,5 @@ rl.question(
       console.log("❌ Invalid input. Please enter 'Y' or 'N'.");
       rl.close();
     }
-  }
+  },
 );
