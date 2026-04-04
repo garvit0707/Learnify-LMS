@@ -1,7 +1,7 @@
 import { Colors } from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TextInput, TouchableOpacity, View } from "react-native";
 
 interface Props {
   value: string;
@@ -12,26 +12,50 @@ interface Props {
 export default function SearchBar({
   value,
   onChangeText,
-  placeholder = "Search courses...",
+  placeholder = "Search courses, topics...",
 }: Props) {
   return (
-    <View className="flex-row items-center bg-dark-800 rounded-xl px-4 py-3 mx-4 mb-3 border border-dark-700">
-      <Ionicons name="search-outline" size={18} color={Colors.textMuted} />
+    <View style={styles.container}>
+      <Ionicons name="search-outline" size={18} color={Colors.textDim} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={Colors.textDim}
-        className="flex-1 ml-2 text-white text-sm"
+        style={styles.input}
         returnKeyType="search"
         autoCorrect={false}
         autoCapitalize="none"
       />
       {value.length > 0 && (
-        <TouchableOpacity onPress={() => onChangeText("")}>
+        <TouchableOpacity
+          onPress={() => onChangeText("")}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+        >
           <Ionicons name="close-circle" size={18} color={Colors.textMuted} />
         </TouchableOpacity>
       )}
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginHorizontal: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+    gap: 10,
+  },
+  input: {
+    flex: 1,
+    color: Colors.text,
+    fontSize: 14,
+  },
+});
