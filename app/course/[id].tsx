@@ -6,32 +6,48 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    ScrollView,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Animated,
+  Image,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+
+const CURRICULUM = [
+  { title: "Introduction & Course Overview", duration: "12 min", free: true },
+  { title: "Setting Up Your Environment", duration: "18 min", free: true },
+  { title: "Core Concepts Deep Dive", duration: "34 min", free: false },
+  { title: "Hands-On Project Walkthrough", duration: "45 min", free: false },
+  { title: "Advanced Patterns & Techniques", duration: "38 min", free: false },
+  { title: "Testing & Best Practices", duration: "26 min", free: false },
+  { title: "Deployment & Production", duration: "22 min", free: false },
+  { title: "Final Project & Assessment", duration: "50 min", free: false },
+];
 
 export default function CourseDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const [course, setCourse] = useState<Course | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [enrolling, setEnrolling] = useState(false);
+  const scrollY = new Animated.Value(0);
 
-  const { isBookmarked, toggleBookmark, isEnrolled, enrollCourse } =
-    useBookmarkStore();
+  const bookmarks = useBookmarkStore((s) => s.bookmarks);
+  const toggleBookmark = useBookmarkStore((s) => s.toggleBookmark);
+  const enrollCourse = useBookmarkStore((s) => s.enrollCourse);
+  const isEnrolled = useBookmarkStore((s) => s.isEnrolled);
 
-  const bookmarked = course ? isBookmarked(course.id) : false;
+  const isBookmarked = course ? !!bookmarks[course.id] : false;
   const enrolled = course ? isEnrolled(course.id) : false;
 
   useEffect(() => {
-    if (!id) return;
-    loadCourse();
+    if (id) loadCourse();
   }, [id]);
 
   const loadCourse = async () => {
@@ -42,190 +58,621 @@ export default function CourseDetailScreen() {
       if (!data) throw new Error("Course not found");
       setCourse(data);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to load course");
+      setError(err instanceof Error ? err.message : "Failed to load");
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleBookmark = useCallback(() => {
+    if (!course) return;
+    toggleBookmark(course);
+  }, [course, toggleBookmark]);
 
   const handleEnroll = useCallback(async () => {
     if (!course) return;
     if (enrolled) {
       router.push({
         pathname: "/course/webview",
-        params: {
-          courseData: JSON.stringify(course),
-        },
+        params: { courseData: JSON.stringify(course) },
       });
       return;
     }
-
-    Alert.alert(
-      "Enroll in Course",
-      `Do you want to enroll in "${course.title}"?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Enroll",
-          onPress: async () => {
-            await enrollCourse(course.id);
-            Toast.show({
-              type: "success",
-              text1: "🎉 Enrolled!",
-              text2: `You're now enrolled in ${course.title}`,
-            });
-          },
+    Alert.alert("Enroll in Course", `Start learning "${course.title}"?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Enroll Free",
+        onPress: async () => {
+          setEnrolling(true);
+          await enrollCourse(course.id);
+          setEnrolling(false);
+          Toast.show({
+            type: "success",
+            text1: "🎉 Enrolled!",
+            text2: course.title,
+          });
         },
-      ],
-    );
-  }, [course, enrolled]);
+      },
+    ]);
+  }, [course, enrolled, enrollCourse]);
 
-  if (isLoading) {
+  if (isLoading)
     return (
-      <SafeAreaView className="flex-1 bg-dark-900 items-center justify-center">
-        <ActivityIndicator size="large" color={Colors.primary} />
+      <SafeAreaView style={styles.container}>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Loading course...</Text>
+        </View>
       </SafeAreaView>
     );
-  }
 
-  if (error || !course) {
+  if (error || !course)
     return (
-      <SafeAreaView className="flex-1 bg-dark-900 items-center justify-center px-6">
-        <Text className="text-5xl mb-4">😕</Text>
-        <Text className="text-white text-lg font-bold mb-2">
-          Course not found
-        </Text>
-        <Text className="text-slate-400 text-sm text-center mb-6">{error}</Text>
-        <TouchableOpacity
-          onPress={loadCourse}
-          className="bg-primary-500 px-6 py-3 rounded-xl mr-3"
-        >
-          <Text className="text-white font-semibold">Retry</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.back()} className="mt-3">
-          <Text className="text-slate-400">← Go Back</Text>
-        </TouchableOpacity>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.centered}>
+          <Text style={{ fontSize: 48, marginBottom: 16 }}>😕</Text>
+          <Text style={styles.errorTitle}>Course not found</Text>
+          <Text style={styles.errorMsg}>{error}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={loadCourse}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{ marginTop: 16 }}
+          >
+            <Text style={{ color: Colors.textMuted }}>← Go Back</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
-  }
+
+  const completedLessons = enrolled ? 2 : 0;
+  const progress = (completedLessons / CURRICULUM.length) * 100;
 
   return (
-    <SafeAreaView className="flex-1 bg-dark-900" edges={["top"]}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3">
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      {/* Fixed header */}
+      <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
-          className="w-10 h-10 bg-dark-800 rounded-xl items-center justify-center"
+          style={styles.headerBtn}
         >
           <Ionicons name="arrow-back" size={20} color={Colors.text} />
         </TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          Course Detail
+        </Text>
         <TouchableOpacity
-          onPress={() => course && toggleBookmark(course)}
-          className="w-10 h-10 bg-dark-800 rounded-xl items-center justify-center"
+          onPress={handleBookmark}
+          style={[styles.headerBtn, isBookmarked && styles.headerBtnActive]}
         >
           <Ionicons
-            name={bookmarked ? "bookmark" : "bookmark-outline"}
+            name={isBookmarked ? "bookmark" : "bookmark-outline"}
             size={20}
-            color={bookmarked ? Colors.primary : Colors.text}
+            color={isBookmarked ? Colors.primary : Colors.text}
           />
         </TouchableOpacity>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Thumbnail */}
-        <Image
-          source={{ uri: course.thumbnail }}
-          className="w-full h-52"
-          resizeMode="cover"
-        />
-
-        <View className="px-4 pt-5 pb-8">
-          {/* Category & Rating */}
-          <View className="flex-row items-center justify-between mb-3">
-            <View className="bg-primary-500/20 px-3 py-1 rounded-full">
-              <Text className="text-primary-500 text-xs font-semibold capitalize">
-                {course.category}
-              </Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
+      >
+        {/* Hero image */}
+        <View style={styles.heroWrap}>
+          <Image
+            source={{ uri: course.thumbnail }}
+            style={styles.hero}
+            resizeMode="cover"
+          />
+          <View style={styles.heroOverlay} />
+          <View style={styles.heroBadges}>
+            <View style={styles.catPill}>
+              <Text style={styles.catPillText}>{course.category}</Text>
             </View>
-            <View className="flex-row items-center">
-              <Ionicons name="star" size={14} color={Colors.warning} />
-              <Text className="text-yellow-400 text-xs ml-1 font-bold">
-                {course.rating?.toFixed(1)}
-              </Text>
+            <View style={styles.ratingPill}>
+              <Ionicons name="star" size={12} color="#FBBF24" />
+              <Text style={styles.ratingText}>{course.rating?.toFixed(1)}</Text>
             </View>
           </View>
+        </View>
 
+        <View style={styles.content}>
           {/* Title */}
-          <Text className="text-white text-2xl font-bold mb-3 leading-tight">
-            {course.title}
-          </Text>
+          <Text style={styles.title}>{course.title}</Text>
 
-          {/* Instructor */}
-          <View className="flex-row items-center mb-4 bg-dark-800 rounded-2xl p-3 border border-dark-700">
+          {/* Stats row */}
+          <View style={styles.statsRow}>
+            {[
+              {
+                icon: "people-outline",
+                val: `${Math.floor(Math.random() * 5000) + 500}`,
+                label: "Students",
+              },
+              { icon: "time-outline", val: "4.5h", label: "Duration" },
+              { icon: "bar-chart-outline", val: "Beginner", label: "Level" },
+              { icon: "ribbon-outline", val: "Cert", label: "Included" },
+            ].map((s) => (
+              <View key={s.label} style={styles.statBox}>
+                <Ionicons
+                  name={s.icon as any}
+                  size={18}
+                  color={Colors.primary}
+                />
+                <Text style={styles.statVal}>{s.val}</Text>
+                <Text style={styles.statLabel}>{s.label}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* Instructor card */}
+          <View style={styles.instructorCard}>
             <Image
               source={{ uri: course.instructorAvatar }}
-              className="w-12 h-12 rounded-full"
+              style={styles.instructorAvatar}
             />
-            <View className="ml-3">
-              <Text className="text-slate-400 text-xs">Instructor</Text>
-              <Text className="text-white font-semibold text-sm">
-                {course.instructorName}
-              </Text>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.instructorLabel}>Your Instructor</Text>
+              <Text style={styles.instructorName}>{course.instructorName}</Text>
+              <View style={styles.instructorMeta}>
+                <Ionicons name="star" size={11} color="#FBBF24" />
+                <Text style={styles.instructorRating}>4.9 Rating</Text>
+                <Text style={styles.instructorDot}>·</Text>
+                <Text style={styles.instructorStudents}>12k Students</Text>
+              </View>
             </View>
           </View>
 
-          {/* Price & Stock */}
-          <View className="flex-row gap-3 mb-5">
-            <View className="flex-1 bg-dark-800 rounded-xl p-3 border border-dark-700 items-center">
-              <Text className="text-primary-500 text-xl font-bold">
-                ${course.price}
-              </Text>
-              <Text className="text-slate-400 text-xs mt-0.5">Price</Text>
-            </View>
-            <View className="flex-1 bg-dark-800 rounded-xl p-3 border border-dark-700 items-center">
-              <Text className="text-green-400 text-xl font-bold">
-                {course.stock}
-              </Text>
-              <Text className="text-slate-400 text-xs mt-0.5">Seats Left</Text>
-            </View>
-          </View>
-
-          {/* Description */}
-          <Text className="text-slate-300 text-sm font-semibold mb-2 uppercase tracking-wide">
-            About this course
-          </Text>
-          <Text className="text-slate-400 text-sm leading-relaxed mb-6">
-            {course.description}
-          </Text>
-
-          {/* View Content Button */}
+          {/* Progress (if enrolled) */}
           {enrolled && (
-            <TouchableOpacity
-              onPress={() =>
-                router.push({
-                  pathname: "/course/webview",
-                  params: { courseData: JSON.stringify(course) },
-                })
-              }
-              className="bg-dark-700 border border-primary-500/40 rounded-2xl py-4 items-center mb-3"
-            >
-              <Text className="text-primary-500 font-bold text-base">
-                📖 View Course Content
+            <View style={styles.progressCard}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressTitle}>Your Progress</Text>
+                <Text style={styles.progressPct}>{Math.round(progress)}%</Text>
+              </View>
+              <View style={styles.progressBar}>
+                <View
+                  style={[styles.progressFill, { width: `${progress}%` }]}
+                />
+              </View>
+              <Text style={styles.progressSub}>
+                {completedLessons} of {CURRICULUM.length} lessons completed
               </Text>
-            </TouchableOpacity>
+            </View>
           )}
 
-          {/* Enroll Button */}
-          <TouchableOpacity
-            onPress={handleEnroll}
-            className="bg-primary-500 rounded-2xl py-4 items-center active:opacity-80"
-          >
-            <Text className="text-white font-bold text-base">
-              {enrolled ? "✅ Enrolled — Start Learning" : "Enroll Now"}
+          {/* About */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>About This Course</Text>
+            <Text style={styles.description}>{course.description}</Text>
+          </View>
+
+          {/* What you'll learn */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>What You'll Learn</Text>
+            <View style={styles.learnGrid}>
+              {[
+                "Core fundamentals from scratch",
+                "Real-world project building",
+                "Industry best practices",
+                "Testing & debugging skills",
+                "Performance optimization",
+                "Production deployment",
+              ].map((item) => (
+                <View key={item} style={styles.learnItem}>
+                  <View style={styles.checkCircle}>
+                    <Ionicons
+                      name="checkmark"
+                      size={11}
+                      color={Colors.primary}
+                    />
+                  </View>
+                  <Text style={styles.learnText}>{item}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+
+          {/* Curriculum */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Curriculum</Text>
+            <Text style={styles.curriculumMeta}>
+              {CURRICULUM.length} lessons ·{" "}
+              {enrolled ? "Full access" : "2 free previews"}
             </Text>
-          </TouchableOpacity>
+            {CURRICULUM.map((lesson, i) => (
+              <View
+                key={lesson.title}
+                style={[
+                  styles.lessonRow,
+                  i === CURRICULUM.length - 1 && { borderBottomWidth: 0 },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.lessonNum,
+                    enrolled && i < completedLessons && styles.lessonNumDone,
+                  ]}
+                >
+                  {enrolled && i < completedLessons ? (
+                    <Ionicons name="checkmark" size={12} color="#fff" />
+                  ) : (
+                    <Text style={styles.lessonNumText}>{i + 1}</Text>
+                  )}
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[
+                      styles.lessonTitle,
+                      !enrolled && !lesson.free && styles.lessonLocked,
+                    ]}
+                  >
+                    {lesson.title}
+                  </Text>
+                  <Text style={styles.lessonDur}>{lesson.duration}</Text>
+                </View>
+                {lesson.free && !enrolled ? (
+                  <View style={styles.freePill}>
+                    <Text style={styles.freePillText}>Free</Text>
+                  </View>
+                ) : (
+                  !enrolled && (
+                    <Ionicons
+                      name="lock-closed-outline"
+                      size={14}
+                      color={Colors.textDim}
+                    />
+                  )
+                )}
+              </View>
+            ))}
+          </View>
+
+          {/* Price */}
+          <View style={styles.priceCard}>
+            <View>
+              <Text style={styles.priceLabel}>Course Price</Text>
+              <Text style={styles.price}>${course.price}</Text>
+            </View>
+            <View style={styles.stockBadge}>
+              <Ionicons name="people" size={13} color={Colors.success} />
+              <Text style={styles.stockText}>{course.stock} seats left</Text>
+            </View>
+          </View>
         </View>
       </ScrollView>
+
+      {/* Fixed CTA */}
+      <View style={styles.ctaBar}>
+        {enrolled ? (
+          <TouchableOpacity
+            style={styles.ctaPrimary}
+            onPress={handleEnroll}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="play-circle" size={20} color="#fff" />
+            <Text style={styles.ctaPrimaryText}>Continue Learning</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity
+            style={[styles.ctaPrimary, enrolling && { opacity: 0.7 }]}
+            onPress={handleEnroll}
+            activeOpacity={0.85}
+            disabled={enrolling}
+          >
+            {enrolling ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <>
+                <Ionicons name="rocket-outline" size={18} color="#fff" />
+                <Text style={styles.ctaPrimaryText}>Enroll Now — Free</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        )}
+      </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.bg },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 32,
+  },
+  loadingText: { color: Colors.textMuted, marginTop: 12, fontSize: 14 },
+  errorTitle: {
+    color: Colors.text,
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  errorMsg: { color: Colors.textMuted, textAlign: "center", marginBottom: 24 },
+  retryBtn: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  retryText: { color: "#fff", fontWeight: "700" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.surfaceBorder,
+  },
+  headerBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerBtnActive: {
+    backgroundColor: "rgba(124,58,237,0.15)",
+    borderColor: "rgba(124,58,237,0.4)",
+  },
+  headerTitle: {
+    color: Colors.text,
+    fontSize: 15,
+    fontWeight: "700",
+    flex: 1,
+    textAlign: "center",
+    marginHorizontal: 8,
+  },
+  heroWrap: { position: "relative", height: 240 },
+  hero: { width: "100%", height: "100%" },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(10,10,15,0.4)",
+  },
+  heroBadges: {
+    position: "absolute",
+    bottom: 16,
+    left: 16,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  catPill: {
+    backgroundColor: "rgba(124,58,237,0.85)",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(167,139,250,0.4)",
+  },
+  catPillText: {
+    color: "#fff",
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  ratingPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(10,10,15,0.85)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "rgba(251,191,36,0.25)",
+  },
+  ratingText: { color: "#FBBF24", fontSize: 12, fontWeight: "700" },
+  content: { padding: 20 },
+  title: {
+    color: Colors.text,
+    fontSize: 22,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+    lineHeight: 30,
+    marginBottom: 20,
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 20,
+  },
+  statBox: {
+    flex: 1,
+    backgroundColor: Colors.surface,
+    borderRadius: 14,
+    padding: 12,
+    alignItems: "center",
+    gap: 4,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+  },
+  statVal: { color: Colors.text, fontSize: 12, fontWeight: "700" },
+  statLabel: { color: Colors.textDim, fontSize: 10 },
+  instructorCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+    marginBottom: 20,
+  },
+  instructorAvatar: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    borderWidth: 2,
+    borderColor: Colors.primary,
+  },
+  instructorLabel: { color: Colors.textDim, fontSize: 11, marginBottom: 2 },
+  instructorName: {
+    color: Colors.text,
+    fontSize: 15,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  instructorMeta: { flexDirection: "row", alignItems: "center", gap: 4 },
+  instructorRating: { color: Colors.textMuted, fontSize: 12 },
+  instructorDot: { color: Colors.textDim },
+  instructorStudents: { color: Colors.textMuted, fontSize: 12 },
+  progressCard: {
+    backgroundColor: "rgba(124,58,237,0.1)",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(124,58,237,0.3)",
+    marginBottom: 20,
+  },
+  progressHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 10,
+  },
+  progressTitle: { color: Colors.text, fontWeight: "700" },
+  progressPct: { color: Colors.primary, fontWeight: "700" },
+  progressBar: {
+    height: 6,
+    backgroundColor: Colors.surfaceBorder,
+    borderRadius: 3,
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: "100%",
+    backgroundColor: Colors.primary,
+    borderRadius: 3,
+  },
+  progressSub: { color: Colors.textMuted, fontSize: 12 },
+  section: { marginBottom: 24 },
+  sectionTitle: {
+    color: Colors.text,
+    fontSize: 17,
+    fontWeight: "800",
+    letterSpacing: -0.3,
+    marginBottom: 14,
+  },
+  description: { color: Colors.textMuted, fontSize: 14, lineHeight: 22 },
+  learnGrid: { gap: 10 },
+  learnItem: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
+  checkCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: "rgba(124,58,237,0.15)",
+    borderWidth: 1,
+    borderColor: "rgba(124,58,237,0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
+  learnText: { color: Colors.textMuted, fontSize: 14, flex: 1, lineHeight: 20 },
+  curriculumMeta: { color: Colors.textDim, fontSize: 13, marginBottom: 12 },
+  lessonRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.surfaceBorder,
+  },
+  lessonNum: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  lessonNumDone: {
+    backgroundColor: Colors.primary,
+    borderColor: Colors.primaryLight,
+  },
+  lessonNumText: { color: Colors.textMuted, fontSize: 12, fontWeight: "700" },
+  lessonTitle: {
+    color: Colors.text,
+    fontSize: 13,
+    fontWeight: "600",
+    marginBottom: 2,
+  },
+  lessonLocked: { color: Colors.textDim },
+  lessonDur: { color: Colors.textDim, fontSize: 11 },
+  freePill: {
+    backgroundColor: "rgba(16,185,129,0.15)",
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderWidth: 1,
+    borderColor: "rgba(16,185,129,0.3)",
+  },
+  freePillText: { color: Colors.success, fontSize: 10, fontWeight: "700" },
+  priceCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+    marginBottom: 8,
+  },
+  priceLabel: { color: Colors.textDim, fontSize: 11, marginBottom: 2 },
+  price: {
+    color: Colors.text,
+    fontSize: 26,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  stockBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "rgba(16,185,129,0.1)",
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "rgba(16,185,129,0.25)",
+  },
+  stockText: { color: Colors.success, fontSize: 12, fontWeight: "600" },
+  ctaBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    paddingBottom: 32,
+    backgroundColor: Colors.bg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.surfaceBorder,
+  },
+  ctaPrimary: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+    backgroundColor: Colors.primary,
+    borderRadius: 16,
+    paddingVertical: 16,
+    borderWidth: 1,
+    borderColor: Colors.primaryLight,
+  },
+  ctaPrimaryText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "800",
+    letterSpacing: -0.2,
+  },
+});
