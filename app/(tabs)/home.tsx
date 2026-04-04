@@ -1,5 +1,4 @@
 import CourseCard from "@/components/CourseCard";
-import LoadingSpinner from "@/components/LoadingSpinner";
 import OfflineBanner from "@/components/OfflineBanner";
 import SearchBar from "@/components/SearchBar";
 import { Colors } from "@/constants/colors";
@@ -8,135 +7,240 @@ import { useCourseStore } from "@/store/courseStore";
 import { Course } from "@/types";
 import React, { useCallback, useEffect } from "react";
 import {
-    ActivityIndicator,
-    FlatList,
-    RefreshControl,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  FlatList,
+  ListRenderItem,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function HomeScreen() {
-  const {
-    fetchCourses,
-    fetchMore,
-    isLoading,
-    isRefreshing,
-    error,
-    searchQuery,
-    setSearchQuery,
-    getFilteredCourses,
-    hasMore,
-  } = useCourseStore();
+const ITEM_HEIGHT = 348;
 
-  const { user } = useAuthStore();
+export default function HomeScreen() {
+  const fetchCourses = useCourseStore((s) => s.fetchCourses);
+  const fetchMore = useCourseStore((s) => s.fetchMore);
+  const isLoading = useCourseStore((s) => s.isLoading);
+  const isRefreshing = useCourseStore((s) => s.isRefreshing);
+  const error = useCourseStore((s) => s.error);
+  const hasMore = useCourseStore((s) => s.hasMore);
+  const searchQuery = useCourseStore((s) => s.searchQuery);
+  const setSearchQuery = useCourseStore((s) => s.setSearchQuery);
+  const getFilteredCourses = useCourseStore((s) => s.getFilteredCourses);
+  const user = useAuthStore((s) => s.user);
+  const courses = getFilteredCourses();
 
   useEffect(() => {
     fetchCourses();
   }, []);
 
-  const courses = getFilteredCourses();
-
-  const renderItem = useCallback(
-    ({ item }: { item: Course }) => <CourseCard course={item} />,
+  const renderItem: ListRenderItem<Course> = useCallback(
+    ({ item }) => <CourseCard course={item} />,
     [],
   );
-
   const keyExtractor = useCallback((item: Course) => item.id, []);
+  const getItemLayout = useCallback(
+    (_: unknown, index: number) => ({
+      length: ITEM_HEIGHT,
+      offset: ITEM_HEIGHT * index,
+      index,
+    }),
+    [],
+  );
+  const onRefresh = useCallback(() => fetchCourses(true), [fetchCourses]);
+  const onEndReached = useCallback(() => fetchMore(), [fetchMore]);
 
-  const renderFooter = () => {
-    if (!hasMore) return null;
-    if (isLoading && courses.length > 0) {
-      return (
-        <View className="py-4">
-          <ActivityIndicator color={Colors.primary} />
-        </View>
-      );
-    }
-    return null;
-  };
+  const ListHeader = (
+    <View style={styles.listHeader}>
+      <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
+    </View>
+  );
 
   const renderEmpty = () => {
-    if (isLoading && courses.length === 0) {
-      return <LoadingSpinner fullScreen message="Loading courses..." />;
-    }
-    if (error) {
+    if (isLoading)
       return (
-        <View className="flex-1 items-center justify-center px-8 py-20">
-          <Text className="text-5xl mb-4">😕</Text>
-          <Text className="text-white text-lg font-bold mb-2">
-            Failed to load
-          </Text>
-          <Text className="text-slate-400 text-sm text-center mb-6">
-            {error}
-          </Text>
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.emptyText}>Loading courses...</Text>
+        </View>
+      );
+    if (error)
+      return (
+        <View style={styles.centered}>
+          <Text style={styles.emptyIcon}>😕</Text>
+          <Text style={styles.emptyTitle}>Failed to load</Text>
+          <Text style={styles.emptySubtitle}>{error}</Text>
           <TouchableOpacity
+            style={styles.retryBtn}
             onPress={() => fetchCourses()}
-            className="bg-primary-500 px-6 py-3 rounded-xl"
           >
-            <Text className="text-white font-semibold">Retry</Text>
+            <Text style={styles.retryText}>Try Again</Text>
           </TouchableOpacity>
         </View>
       );
-    }
-    if (searchQuery && courses.length === 0) {
+    if (searchQuery)
       return (
-        <View className="items-center py-20">
-          <Text className="text-5xl mb-3">🔍</Text>
-          <Text className="text-slate-400 text-sm">
-            No courses match "{searchQuery}"
+        <View style={styles.centered}>
+          <Text style={styles.emptyIcon}>🔍</Text>
+          <Text style={styles.emptySubtitle}>
+            No results for "{searchQuery}"
           </Text>
         </View>
       );
-    }
+    return null;
+  };
+
+  const renderFooter = () => {
+    if (!hasMore || courses.length === 0) return null;
+    if (isLoading)
+      return (
+        <View style={{ paddingVertical: 20, alignItems: "center" }}>
+          <ActivityIndicator color={Colors.primary} />
+        </View>
+      );
     return null;
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-dark-900" edges={["top"]}>
+    <SafeAreaView style={styles.container} edges={["top"]}>
       <OfflineBanner />
 
       {/* Header */}
-      <View className="px-4 pt-4 pb-3">
-        <Text className="text-slate-400 text-sm">
-          Hello, {user?.fullName?.split(" ")[0] || user?.username || "Learner"}{" "}
-          👋
-        </Text>
-        <Text className="text-white text-2xl font-bold mt-0.5">
-          What do you want to learn?
-        </Text>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.greeting}>
+            Hello,{" "}
+            {user?.fullName?.split(" ")[0] || user?.username || "Learner"} 👋
+          </Text>
+          <Text style={styles.headline}>Explore Courses</Text>
+        </View>
+        <View style={styles.avatarCircle}>
+          <Text style={styles.avatarLetter}>
+            {(user?.fullName || user?.username || "L")[0].toUpperCase()}
+          </Text>
+        </View>
       </View>
 
-      <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
+      {/* Stats bar */}
+      <View style={styles.statsBar}>
+        <View style={styles.statItem}>
+          <Text style={styles.statValue}>{courses.length}</Text>
+          <Text style={styles.statLabel}>Courses</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={styles.statValue}>Free</Text>
+          <Text style={styles.statLabel}>Access</Text>
+        </View>
+        <View style={styles.statDivider} />
+        <View style={styles.statItem}>
+          <Text style={styles.statValue}>HD</Text>
+          <Text style={styles.statLabel}>Quality</Text>
+        </View>
+      </View>
 
       <FlatList
         data={courses}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
+        getItemLayout={getItemLayout}
+        ListHeaderComponent={ListHeader}
         ListEmptyComponent={renderEmpty}
         ListFooterComponent={renderFooter}
-        onEndReached={fetchMore}
+        onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
-            onRefresh={() => fetchCourses(true)}
+            onRefresh={onRefresh}
             tintColor={Colors.primary}
           />
         }
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20, flexGrow: 1 }}
+        contentContainerStyle={{ paddingBottom: 100, flexGrow: 1 }}
         removeClippedSubviews
-        maxToRenderPerBatch={5}
-        windowSize={10}
-        initialNumToRender={5}
-        getItemLayout={(_, index) => ({
-          length: 300,
-          offset: 300 * index,
-          index,
-        })}
+        maxToRenderPerBatch={4}
+        windowSize={7}
+        initialNumToRender={4}
+        updateCellsBatchingPeriod={50}
       />
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.bg },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 16,
+  },
+  greeting: { color: Colors.textMuted, fontSize: 14, marginBottom: 4 },
+  headline: {
+    color: Colors.text,
+    fontSize: 26,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+  },
+  avatarCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: Colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: Colors.primaryLight,
+  },
+  avatarLetter: { color: Colors.white, fontSize: 18, fontWeight: "700" },
+  statsBar: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 20,
+    marginBottom: 16,
+    backgroundColor: Colors.surface,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+    paddingVertical: 12,
+  },
+  statItem: { flex: 1, alignItems: "center" },
+  statValue: { color: Colors.text, fontSize: 16, fontWeight: "700" },
+  statLabel: { color: Colors.textDim, fontSize: 11, marginTop: 2 },
+  statDivider: { width: 1, height: 28, backgroundColor: Colors.surfaceBorder },
+  listHeader: { paddingTop: 4 },
+  centered: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingTop: 80,
+    paddingHorizontal: 32,
+  },
+  emptyIcon: { fontSize: 48, marginBottom: 16 },
+  emptyTitle: {
+    color: Colors.text,
+    fontSize: 18,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
+  emptyText: { color: Colors.textMuted, fontSize: 14, marginTop: 12 },
+  emptySubtitle: {
+    color: Colors.textMuted,
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 24,
+  },
+  retryBtn: {
+    backgroundColor: Colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+  retryText: { color: Colors.white, fontWeight: "700" },
+});
