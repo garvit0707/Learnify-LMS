@@ -1,23 +1,21 @@
 import { Course } from "@/types";
 import {
-    requestNotificationPermissions,
-    scheduleBookmarkMilestoneNotification,
+  requestNotificationPermissions,
+  scheduleBookmarkMilestoneNotification,
 } from "@/utils/notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
 
 const BOOKMARKS_KEY = "learnify_bookmarks";
 const ENROLLED_KEY = "learnify_enrolled";
-const MILESTONE_NOTIFIED_KEY = "learnify_milestone_notified";
+const MILESTONE_KEY = "learnify_milestone_notified";
 
 interface BookmarkStore {
   bookmarks: Record<string, Course>;
   enrolled: Record<string, boolean>;
   isLoaded: boolean;
-
   loadFromStorage: () => Promise<void>;
   toggleBookmark: (course: Course) => Promise<void>;
-  isBookmarked: (id: string) => boolean;
   enrollCourse: (id: string) => Promise<void>;
   isEnrolled: (id: string) => boolean;
   getBookmarkedCourses: () => Course[];
@@ -30,13 +28,13 @@ export const useBookmarkStore = create<BookmarkStore>((set, get) => ({
 
   loadFromStorage: async () => {
     try {
-      const [bookmarksRaw, enrolledRaw] = await Promise.all([
+      const [b, e] = await Promise.all([
         AsyncStorage.getItem(BOOKMARKS_KEY),
         AsyncStorage.getItem(ENROLLED_KEY),
       ]);
       set({
-        bookmarks: bookmarksRaw ? JSON.parse(bookmarksRaw) : {},
-        enrolled: enrolledRaw ? JSON.parse(enrolledRaw) : {},
+        bookmarks: b ? JSON.parse(b) : {},
+        enrolled: e ? JSON.parse(e) : {},
         isLoaded: true,
       });
     } catch {
@@ -44,46 +42,54 @@ export const useBookmarkStore = create<BookmarkStore>((set, get) => ({
     }
   },
 
-  toggleBookmark: async (course) => {
-    const { bookmarks } = get();
-    const isCurrentlyBookmarked = !!bookmarks[course.id];
-    let updated: Record<string, Course>;
-
-    if (isCurrentlyBookmarked) {
-      updated = { ...bookmarks };
-      delete updated[course.id];
-    } else {
-      updated = { ...bookmarks, [course.id]: course };
+  toggleBookmark: async (course: Course) => {
+    // Guard: never allow undefined id
+    if (!course?.id || course.id === "undefined") {
+      console.warn("toggleBookmark called with invalid course id", course);
+      return;
     }
 
-    set({ bookmarks: updated });
-    await AsyncStorage.setItem(BOOKMARKS_KEY, JSON.stringify(updated));
+    const prev = get().bookmarks;
+    const wasBookmarked = !!prev[course.id];
+    const next = { ...prev };
 
-    // Check milestone: 5+ bookmarks
-    const count = Object.keys(updated).length;
-    if (count >= 5) {
-      const alreadyNotified = await AsyncStorage.getItem(
-        MILESTONE_NOTIFIED_KEY,
-      );
-      if (!alreadyNotified) {
-        const granted = await requestNotificationPermissions();
-        if (granted) {
+    if (wasBookmarked) {
+      delete next[course.id];
+    } else {
+      next[course.id] = { ...course };
+    }
+
+    // Optimistic update
+    set({ bookmarks: next });
+
+    try {
+      await AsyncStorage.setItem(BOOKMARKS_KEY, JSON.stringify(next));
+    } catch {
+      // Rollback
+      set({ bookmarks: prev });
+      return;
+    }
+
+    // Milestone: exactly 5 bookmarks
+    if (!wasBookmarked && Object.keys(next).length === 5) {
+      const done = await AsyncStorage.getItem(MILESTONE_KEY);
+      if (!done) {
+        const ok = await requestNotificationPermissions();
+        if (ok) {
           await scheduleBookmarkMilestoneNotification();
-          await AsyncStorage.setItem(MILESTONE_NOTIFIED_KEY, "true");
+          await AsyncStorage.setItem(MILESTONE_KEY, "true");
         }
       }
     }
   },
 
-  isBookmarked: (id) => !!get().bookmarks[id],
-
-  enrollCourse: async (id) => {
+  enrollCourse: async (id: string) => {
+    if (!id || id === "undefined") return;
     const updated = { ...get().enrolled, [id]: true };
     set({ enrolled: updated });
     await AsyncStorage.setItem(ENROLLED_KEY, JSON.stringify(updated));
   },
 
-  isEnrolled: (id) => !!get().enrolled[id],
-
+  isEnrolled: (id: string) => !!get().enrolled[id],
   getBookmarkedCourses: () => Object.values(get().bookmarks),
 }));
