@@ -8,34 +8,31 @@ export default function TabsLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: "#1E293B",
-          borderTopColor: "#334155",
+          backgroundColor: Colors.surface,
+          borderTopColor: Colors.surfaceBorder,
           borderTopWidth: 1,
-          height: 60,
-          paddingBottom: 8,
-          paddingTop: 8,
+          height: 70,
+          paddingBottom: 12,
+          paddingTop: 10,
         },
         tabBarActiveTintColor: Colors.primary,
         tabBarInactiveTintColor: Colors.textDim,
-        tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: "600",
-        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
-          title: "Courses",
+          title: "Explore",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="library-outline" size={size} color={color} />
+            <Ionicons name="compass-outline" size={size} color={color} />
           ),
         }}
       />
       <Tabs.Screen
         name="bookmarks"
         options={{
-          title: "Bookmarks",
+          title: "Saved",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="bookmark-outline" size={size} color={color} />
           ),
