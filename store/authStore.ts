@@ -14,7 +14,6 @@ interface AuthStore {
     email: string,
     username: string,
     password: string,
-    fullName: string,
   ) => Promise<void>;
   logout: () => Promise<void>;
   updateUser: (user: User) => void;
@@ -66,14 +65,13 @@ export const useAuthStore = create<AuthStore>((set) => ({
     }
   },
 
-  register: async (email, username, password, fullName) => {
+  register: async (email, username, password) => {
     set({ isLoading: true, error: null });
     try {
       const { user } = await authService.register({
         email,
         username,
         password,
-        fullName,
       });
       set({ user, isAuthenticated: true });
     } catch (err: unknown) {
