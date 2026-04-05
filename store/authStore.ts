@@ -6,7 +6,8 @@ import { create } from "zustand";
 interface AuthStore {
   user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
+  isLoading: boolean; // app startup loading
+  isSubmitting: boolean; // login/register button loading
   error: string | null;
   initialize: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
@@ -24,6 +25,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   isAuthenticated: false,
   isLoading: true,
+  isSubmitting: false,
   error: null,
 
   initialize: async () => {
@@ -31,56 +33,52 @@ export const useAuthStore = create<AuthStore>((set) => ({
     try {
       const token = await SecureStorage.getAccessToken();
       const cachedUser = await SecureStorage.getUser<User>();
+
       if (token && cachedUser) {
-        set({ user: cachedUser, isAuthenticated: true });
+        // Show cached user immediately so app feels instant
+        set({ user: cachedUser, isAuthenticated: true, isLoading: false });
+
+        // Silently verify token in background
         try {
           const freshUser = await authService.getCurrentUser();
           await SecureStorage.saveUser(freshUser);
-          set({ user: freshUser, isAuthenticated: true });
+          set({ user: freshUser });
         } catch {
+          // Token expired — clear silently
           await SecureStorage.clearAll();
           set({ user: null, isAuthenticated: false });
         }
       } else {
-        set({ user: null, isAuthenticated: false });
+        set({ user: null, isAuthenticated: false, isLoading: false });
       }
     } catch {
-      set({ user: null, isAuthenticated: false });
-    } finally {
-      set({ isLoading: false });
+      set({ user: null, isAuthenticated: false, isLoading: false });
     }
   },
 
-  login: async (email, password) => {
-    set({ isLoading: true, error: null });
+  login: async (email: string, password: string) => {
+    set({ isSubmitting: true, error: null });
     try {
       const { user } = await authService.login({ email, password });
-      set({ user, isAuthenticated: true });
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Login failed";
-      set({ error: message });
-      throw err;
-    } finally {
-      set({ isLoading: false });
+      set({ user, isAuthenticated: true, isSubmitting: false });
+    } catch (err) {
+      set({ isSubmitting: false });
+      throw err; // Let the screen handle the error toast
     }
   },
 
-  register: async (email, username, password) => {
-    set({ isLoading: true, error: null });
+  register: async (email: string, username: string, password: string) => {
+    set({ isSubmitting: true, error: null });
     try {
       const { user } = await authService.register({
         email,
         username,
         password,
       });
-      set({ user, isAuthenticated: true });
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "Registration failed";
-      set({ error: message });
+      set({ user, isAuthenticated: true, isSubmitting: false });
+    } catch (err) {
+      set({ isSubmitting: false });
       throw err;
-    } finally {
-      set({ isLoading: false });
     }
   },
 
