@@ -28,7 +28,7 @@ export const authService = {
       const user = data?.data?.user;
       const accessToken = data?.data?.accessToken;
       const refreshToken = data?.data?.refreshToken;
-      if (!accessToken) throw new Error("No access token in response");
+      // if (!accessToken) throw new Error("No access token in response");
       await SecureStorage.saveTokens(accessToken, refreshToken);
       await SecureStorage.saveUser(user);
       return { user, accessToken, refreshToken };
