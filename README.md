@@ -1,50 +1,65 @@
-# Welcome to your Expo app 👋
+# 🎓 Learnify LMS - This is the name i have given to this project.
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A full-featured mobile Learning Management System built with React Native Expo.
 
-## Get started
+Important Note - 
+1. make sure u run this project in expo sdk 52 only...
+2. FreeAPI.app resets every few hours — re-register if login fails with 404 (other wise u fine difficulty while logging and registering the user).
 
-1. Install dependencies
 
-   ```bash
-   npm install
-   ```
+## Tech Stack i used
+- Framework: React Native + Expo SDK 52
+- Language: TypeScript (strict mode)
+- Navigation: Expo Router v4
+- Styling: NativeWind v4 + StyleSheet
+- State: Zustand
+- Storage: Expo SecureStore + AsyncStorage
+- API: [FreeAPI.app](https://api.freeapi.app)
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## Prerequisites
+- Node.js installed  **v20+** (v18 will NOT work), mine is v20.20.2.
+- npm v10+
+- Expo Go app on your phone — [iOS](https://apps.apple.com/app/expo-go/id982107779) / [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)
+- Make sure your expo go app must be version sdk 52..
+--
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+## Setup & Run
 ```bash
-npm run reset-project
+# 1. Clone the repo
+git clone https://github.com/your-username/learnify-lms.git
+cd learnify-lms
+
+# 2. Install dependencies (legacy flag required for SDK 52)
+npm install --legacy-peer-deps
+
+# 3. Start the app
+npx expo start --clear
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Scan the QR code with Expo Go (Android) or Camera (iOS).
 
-## Learn more
+---
 
-To learn more about developing your project with Expo, look at the following resources:
+## Key Notes
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+- Node v20+ required** — v18 breaks metro bundler
+- Use `--legacy-peer-deps` on every install
+- 👉 FreeAPI.app resets every few hours — re-register if login fails with 404 (other wise u fine difficulty while logging and registering the user)
+- NativeWind v4 requires `global.css` imported in `app/_layout.tsx`
+- `tailwindcss` must stay pinned at `3.3.5` — v4 breaks NativeWind
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## Features
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- 🔐 Auth — Register, Login, Auto-login, Secure token storage
+- 📚 Course catalog with search, filter, pull-to-refresh
+- 🔖 Bookmarks with AsyncStorage persistence
+- ✅ Course enrollment with progress tracking
+- 🌐 WebView course content with JS bridge
+- 🔔 Push notifications (5 bookmark milestone + 24h reminder)
+- 📡 Offline banner with network detection
+- 👤 Profile with avatar upload
+
