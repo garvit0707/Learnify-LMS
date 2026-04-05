@@ -1,6 +1,6 @@
 import { useNetworkStatus } from "@/hooks/useNetworkStatus";
 import React from "react";
-import { Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function OfflineBanner() {
   const { isConnected } = useNetworkStatus();
@@ -15,8 +15,6 @@ export default function OfflineBanner() {
     </View>
   );
 }
-<<<<<<< Updated upstream
-=======
 
 const styles = StyleSheet.create({
   banner: {
@@ -29,4 +27,3 @@ const styles = StyleSheet.create({
   },
   text: { color: "#fff", fontSize: 13, fontWeight: "600" },
 });
->>>>>>> Stashed changes

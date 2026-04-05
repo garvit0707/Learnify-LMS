@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Animated,
   FlatList,
+  ListRenderItem,
   RefreshControl,
   StyleSheet,
   Text,
@@ -214,8 +215,6 @@ export default function HomeScreen() {
         getItemLayout={getItemLayout}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={renderEmpty}
-        ListFooterComponent={renderFooter}
-        onEndReached={onEndReached}
         ListFooterComponent={
           hasMore && isLoading && courses.length > 0 ? (
             <View style={{ paddingVertical: 24, alignItems: "center" }}>
@@ -230,7 +229,7 @@ export default function HomeScreen() {
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
-            onRefresh={onRefresh}
+            onRefresh={() => fetchCourses(true)}
             tintColor={Colors.primary}
             colors={[Colors.primary]}
           />
@@ -249,74 +248,131 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
-  header: {
+  listHeaderWrap: { paddingTop: 4 },
+
+  // Hero
+  hero: {
+    margin: 16,
+    marginBottom: 12,
+    backgroundColor: Colors.surface,
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: Colors.surfaceBorder,
+    overflow: "hidden",
+    minHeight: 156,
+    position: "relative",
+  },
+  blob1: {
+    position: "absolute",
+    top: -50,
+    right: -50,
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    backgroundColor: "rgba(124,58,237,0.13)",
+  },
+  blob2: {
+    position: "absolute",
+    bottom: -40,
+    left: -30,
+    width: 130,
+    height: 130,
+    borderRadius: 65,
+    backgroundColor: "rgba(6,182,212,0.09)",
+  },
+  blob3: {
+    position: "absolute",
+    top: 20,
+    left: "45%",
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "rgba(124,58,237,0.06)",
+  },
+  fi: {
+    position: "absolute",
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.09)",
+    borderRadius: 14,
+    padding: 9,
+  },
+  fi1: { top: 14, right: 16 },
+  fi2: { top: 62, right: 72 },
+  fi3: { bottom: 18, right: 28 },
+  fiText: { fontSize: 20 },
+  heroContent: { padding: 22, paddingRight: 88 },
+  heroGreeting: { color: Colors.textMuted, fontSize: 13, marginBottom: 4 },
+  heroName: {
+    color: Colors.text,
+    fontSize: 23,
+    fontWeight: "800",
+    letterSpacing: -0.5,
+    marginBottom: 6,
+  },
+  heroSub: {
+    color: Colors.textDim,
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 14,
+  },
+  heroPillRow: { flexDirection: "row", gap: 7, flexWrap: "wrap" },
+  heroPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "rgba(124,58,237,0.1)",
+    borderRadius: 20,
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: "rgba(124,58,237,0.18)",
+  },
+  heroPillText: { color: Colors.textMuted, fontSize: 11, fontWeight: "600" },
+
+  // Section label
+  sectionRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: 20,
-    paddingTop: 8,
-    paddingBottom: 16,
+    paddingBottom: 10,
+    paddingTop: 2,
   },
-  greeting: { color: Colors.textMuted, fontSize: 14, marginBottom: 4 },
-  headline: {
-    color: Colors.text,
-    fontSize: 26,
-    fontWeight: "800",
-    letterSpacing: -0.5,
-  },
-  avatarCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.primary,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: Colors.primaryLight,
-  },
-  avatarLetter: { color: Colors.white, fontSize: 18, fontWeight: "700" },
-  statsBar: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 20,
-    marginBottom: 16,
+  sectionTitle: { color: Colors.text, fontSize: 16, fontWeight: "700" },
+  countChip: {
     backgroundColor: Colors.surface,
-    borderRadius: 16,
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderWidth: 1,
     borderColor: Colors.surfaceBorder,
-    paddingVertical: 12,
   },
-  statItem: { flex: 1, alignItems: "center" },
-  statValue: { color: Colors.text, fontSize: 16, fontWeight: "700" },
-  statLabel: { color: Colors.textDim, fontSize: 11, marginTop: 2 },
-  statDivider: { width: 1, height: 28, backgroundColor: Colors.surfaceBorder },
-  listHeader: { paddingTop: 4 },
+  countChipText: { color: Colors.textDim, fontSize: 11 },
+  countText: { color: Colors.textDim, fontSize: 13 },
+
+  // Empty / loading
   centered: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: 80,
+    paddingTop: 60,
     paddingHorizontal: 32,
   },
-  emptyIcon: { fontSize: 48, marginBottom: 16 },
+  loadingText: { color: Colors.textMuted, fontSize: 14, marginTop: 12 },
   emptyTitle: {
     color: Colors.text,
     fontSize: 18,
     fontWeight: "700",
     marginBottom: 8,
   },
-  emptyText: { color: Colors.textMuted, fontSize: 14, marginTop: 12 },
-  emptySubtitle: {
-    color: Colors.textMuted,
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: 24,
-  },
+  emptySubtitle: { color: Colors.textMuted, fontSize: 14, textAlign: "center" },
   retryBtn: {
     backgroundColor: Colors.primary,
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 20,
+    marginTop: 16,
   },
-  retryText: { color: Colors.white, fontWeight: "700" },
+  retryText: { color: "#fff", fontWeight: "700" },
 });

@@ -17,11 +17,7 @@
         "backgroundColor": "#0F172A"
       },
       "package": "com.learnify.lms",
-      "permissions": [
-        "NOTIFICATIONS",
-        "INTERNET",
-        "ACCESS_NETWORK_STATE"
-      ]
+      "permissions": ["NOTIFICATIONS", "INTERNET", "ACCESS_NETWORK_STATE"]
     },
     "plugins": [
       "expo-router",
@@ -29,7 +25,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/icon.png",
+          "icon": "./assets/images/Learnify.png",
           "color": "#6366F1"
         }
       ],
