@@ -63,3 +63,17 @@ Scan the QR code with Expo Go (Android) or Camera (iOS).
 - 📡 Offline banner with network detection
 - 👤 Profile with avatar upload
 
+
+![image1](https://github.com/user-attachments/assets/3f7f37bd-f7e1-4457-839e-19a99598760f)
+![image2](https://github.com/user-attachments/assets/9a2bcdca-fb4f-4759-8e93-3ddd637efa91)
+![image3](https://github.com/user-attachments/assets/848c6b70-59de-46ab-b335-42bcd5751a62)
+![image4](https://github.com/user-attachments/assets/a4f2c6c2-8b72-47f0-adf9-d05e26a2ef3e)
+![image5](https://github.com/user-attachments/assets/10ea7aa4-2023-447f-972c-60b87ceb3915)
+![image6](https://github.com/user-attachments/assets/ae4acf85-110a-46db-ab4c-fef5d0c9730b)
+
+![image7](https://github.com/user-attachments/assets/0dbf5dec-6e79-4fb5-bfac-2e57a1e6652d)
+
+
+
+
+
