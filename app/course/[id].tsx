@@ -1,3 +1,4 @@
+import AppModal from "@/components/Modal";
 import { Colors } from "@/constants/colors";
 import { courseService } from "@/services/courseService";
 import { useBookmarkStore } from "@/store/bookmarkStore";
@@ -7,8 +8,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
-  Animated,
   Image,
   ScrollView,
   StyleSheet,
@@ -36,7 +35,7 @@ export default function CourseDetailScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [enrolling, setEnrolling] = useState(false);
-  const scrollY = new Animated.Value(0);
+  const [enrollModal, setEnrollModal] = useState(false);
 
   const bookmarks = useBookmarkStore((s) => s.bookmarks);
   const toggleBookmark = useBookmarkStore((s) => s.toggleBookmark);
@@ -69,7 +68,7 @@ export default function CourseDetailScreen() {
     toggleBookmark(course);
   }, [course, toggleBookmark]);
 
-  const handleEnroll = useCallback(async () => {
+  const handleEnroll = useCallback(() => {
     if (!course) return;
     if (enrolled) {
       router.push({
@@ -78,23 +77,16 @@ export default function CourseDetailScreen() {
       });
       return;
     }
-    Alert.alert("Enroll in Course", `Start learning "${course.title}"?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Enroll Free",
-        onPress: async () => {
-          setEnrolling(true);
-          await enrollCourse(course.id);
-          setEnrolling(false);
-          Toast.show({
-            type: "success",
-            text1: "🎉 Enrolled!",
-            text2: course.title,
-          });
-        },
-      },
-    ]);
-  }, [course, enrolled, enrollCourse]);
+    setEnrollModal(true);
+  }, [course, enrolled]);
+
+  const doEnroll = useCallback(async () => {
+    if (!course) return;
+    setEnrolling(true);
+    await enrollCourse(course.id);
+    setEnrolling(false);
+    Toast.show({ type: "success", text1: "🎉 Enrolled!", text2: course.title });
+  }, [course, enrollCourse]);
 
   if (isLoading)
     return (
@@ -131,7 +123,6 @@ export default function CourseDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
-      {/* Fixed header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -158,7 +149,6 @@ export default function CourseDetailScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
       >
-        {/* Hero image */}
         <View style={styles.heroWrap}>
           <Image
             source={{ uri: course.thumbnail }}
@@ -178,19 +168,17 @@ export default function CourseDetailScreen() {
         </View>
 
         <View style={styles.content}>
-          {/* Title */}
           <Text style={styles.title}>{course.title}</Text>
 
-          {/* Stats row */}
           <View style={styles.statsRow}>
             {[
               {
                 icon: "people-outline",
-                val: `${Math.floor(Math.random() * 5000) + 500}`,
+                val: `${Math.floor(course.stock * 12 + 500)}`,
                 label: "Students",
               },
               { icon: "time-outline", val: "4.5h", label: "Duration" },
-              { icon: "bar-chart-outline", val: "Beginner", label: "Level" },
+              { icon: "bar-chart-outline", val: "All levels", label: "Level" },
               { icon: "ribbon-outline", val: "Cert", label: "Included" },
             ].map((s) => (
               <View key={s.label} style={styles.statBox}>
@@ -205,7 +193,6 @@ export default function CourseDetailScreen() {
             ))}
           </View>
 
-          {/* Instructor card */}
           <View style={styles.instructorCard}>
             <Image
               source={{ uri: course.instructorAvatar }}
@@ -216,14 +203,14 @@ export default function CourseDetailScreen() {
               <Text style={styles.instructorName}>{course.instructorName}</Text>
               <View style={styles.instructorMeta}>
                 <Ionicons name="star" size={11} color="#FBBF24" />
-                <Text style={styles.instructorRating}>4.9 Rating</Text>
-                <Text style={styles.instructorDot}>·</Text>
-                <Text style={styles.instructorStudents}>12k Students</Text>
+                <Text style={styles.instructorRating}>4.9 · 12k Students</Text>
               </View>
+            </View>
+            <View style={styles.followBtn}>
+              <Text style={styles.followText}>Follow</Text>
             </View>
           </View>
 
-          {/* Progress (if enrolled) */}
           {enrolled && (
             <View style={styles.progressCard}>
               <View style={styles.progressHeader}>
@@ -236,28 +223,26 @@ export default function CourseDetailScreen() {
                 />
               </View>
               <Text style={styles.progressSub}>
-                {completedLessons} of {CURRICULUM.length} lessons completed
+                {completedLessons} of {CURRICULUM.length} lessons done
               </Text>
             </View>
           )}
 
-          {/* About */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>About This Course</Text>
             <Text style={styles.description}>{course.description}</Text>
           </View>
 
-          {/* What you'll learn */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>What You'll Learn</Text>
             <View style={styles.learnGrid}>
               {[
-                "Core fundamentals from scratch",
-                "Real-world project building",
-                "Industry best practices",
-                "Testing & debugging skills",
-                "Performance optimization",
-                "Production deployment",
+                "Core fundamentals",
+                "Real-world projects",
+                "Best practices",
+                "Testing skills",
+                "Performance tips",
+                "Production deploy",
               ].map((item) => (
                 <View key={item} style={styles.learnItem}>
                   <View style={styles.checkCircle}>
@@ -273,7 +258,6 @@ export default function CourseDetailScreen() {
             </View>
           </View>
 
-          {/* Curriculum */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Curriculum</Text>
             <Text style={styles.curriculumMeta}>
@@ -328,7 +312,6 @@ export default function CourseDetailScreen() {
             ))}
           </View>
 
-          {/* Price */}
           <View style={styles.priceCard}>
             <View>
               <Text style={styles.priceLabel}>Course Price</Text>
@@ -342,35 +325,42 @@ export default function CourseDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Fixed CTA */}
       <View style={styles.ctaBar}>
-        {enrolled ? (
-          <TouchableOpacity
-            style={styles.ctaPrimary}
-            onPress={handleEnroll}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="play-circle" size={20} color="#fff" />
-            <Text style={styles.ctaPrimaryText}>Continue Learning</Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[styles.ctaPrimary, enrolling && { opacity: 0.7 }]}
-            onPress={handleEnroll}
-            activeOpacity={0.85}
-            disabled={enrolling}
-          >
-            {enrolling ? (
-              <ActivityIndicator color="#fff" size="small" />
-            ) : (
-              <>
-                <Ionicons name="rocket-outline" size={18} color="#fff" />
-                <Text style={styles.ctaPrimaryText}>Enroll Now — Free</Text>
-              </>
-            )}
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity
+          style={[styles.ctaPrimary, enrolling && { opacity: 0.7 }]}
+          onPress={handleEnroll}
+          activeOpacity={0.85}
+          disabled={enrolling}
+        >
+          {enrolling ? (
+            <ActivityIndicator color="#fff" size="small" />
+          ) : (
+            <>
+              <Ionicons
+                name={enrolled ? "play-circle" : "rocket-outline"}
+                size={18}
+                color="#fff"
+              />
+              <Text style={styles.ctaPrimaryText}>
+                {enrolled ? "Continue Learning" : "Enroll Now — Free"}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
       </View>
+
+      <AppModal
+        visible={enrollModal}
+        onClose={() => setEnrollModal(false)}
+        icon="rocket-outline"
+        iconColor={Colors.primary}
+        title="Enroll in Course"
+        message={`Start learning "${course.title}"? You'll get full access to all ${CURRICULUM.length} lessons instantly.`}
+        actions={[
+          { label: "Enroll Free", variant: "primary", onPress: doEnroll },
+          { label: "Maybe Later", variant: "ghost", onPress: () => {} },
+        ]}
+      />
     </SafeAreaView>
   );
 }
@@ -441,7 +431,6 @@ const styles = StyleSheet.create({
     left: 16,
     right: 16,
     flexDirection: "row",
-    alignItems: "center",
     gap: 8,
   },
   catPill: {
@@ -480,11 +469,7 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     marginBottom: 20,
   },
-  statsRow: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 20,
-  },
+  statsRow: { flexDirection: "row", gap: 8, marginBottom: 20 },
   statBox: {
     flex: 1,
     backgroundColor: Colors.surface,
@@ -495,7 +480,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.surfaceBorder,
   },
-  statVal: { color: Colors.text, fontSize: 12, fontWeight: "700" },
+  statVal: {
+    color: Colors.text,
+    fontSize: 11,
+    fontWeight: "700",
+    textAlign: "center",
+  },
   statLabel: { color: Colors.textDim, fontSize: 10 },
   instructorCard: {
     flexDirection: "row",
@@ -524,8 +514,15 @@ const styles = StyleSheet.create({
   },
   instructorMeta: { flexDirection: "row", alignItems: "center", gap: 4 },
   instructorRating: { color: Colors.textMuted, fontSize: 12 },
-  instructorDot: { color: Colors.textDim },
-  instructorStudents: { color: Colors.textMuted, fontSize: 12 },
+  followBtn: {
+    backgroundColor: "rgba(124,58,237,0.12)",
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderWidth: 1,
+    borderColor: "rgba(124,58,237,0.3)",
+  },
+  followText: { color: Colors.primary, fontSize: 12, fontWeight: "700" },
   progressCard: {
     backgroundColor: "rgba(124,58,237,0.1)",
     borderRadius: 16,
@@ -609,7 +606,7 @@ const styles = StyleSheet.create({
   lessonLocked: { color: Colors.textDim },
   lessonDur: { color: Colors.textDim, fontSize: 11 },
   freePill: {
-    backgroundColor: "rgba(16,185,129,0.15)",
+    backgroundColor: "rgba(16,185,129,0.12)",
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 3,
