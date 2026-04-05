@@ -111,7 +111,7 @@ export default function BookmarksScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.bg },
+  container: { flex: 1, backgroundColor: Colors.bg, paddingTop: 30 },
   header: {
     flexDirection: "row",
     alignItems: "flex-start",

@@ -9,23 +9,8 @@ import { Ionicons } from "@expo/vector-icons";
 import React, { useCallback, useEffect, useRef } from "react";
 import {
   ActivityIndicator,
-  FlatList,
-  ListRenderItem,
-  RefreshControl,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-
-const ITEM_HEIGHT = 348;
-
-=======
-  ActivityIndicator,
   Animated,
   FlatList,
-  ListRenderItem,
   RefreshControl,
   StyleSheet,
   Text,
@@ -130,7 +115,6 @@ function HeroCard({ name }: { name: string }) {
   );
 }
 
->>>>>>> Stashed changes
 export default function HomeScreen() {
   const fetchCourses = useCourseStore((s) => s.fetchCourses);
   const fetchMore = useCourseStore((s) => s.fetchMore);
@@ -153,107 +137,6 @@ export default function HomeScreen() {
     [],
   );
   const keyExtractor = useCallback((item: Course) => item.id, []);
-  const getItemLayout = useCallback(
-    (_: unknown, index: number) => ({
-      length: ITEM_HEIGHT,
-      offset: ITEM_HEIGHT * index,
-      index,
-    }),
-    [],
-  );
-  const onRefresh = useCallback(() => fetchCourses(true), [fetchCourses]);
-  const onEndReached = useCallback(() => fetchMore(), [fetchMore]);
-
-  const ListHeader = (
-    <View style={styles.listHeader}>
-      <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
-    </View>
-  );
-
-  const renderEmpty = () => {
-    if (isLoading)
-      return (
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={Colors.primary} />
-          <Text style={styles.emptyText}>Loading courses...</Text>
-        </View>
-      );
-    if (error)
-      return (
-        <View style={styles.centered}>
-          <Text style={styles.emptyIcon}>😕</Text>
-          <Text style={styles.emptyTitle}>Failed to load</Text>
-          <Text style={styles.emptySubtitle}>{error}</Text>
-          <TouchableOpacity
-            style={styles.retryBtn}
-            onPress={() => fetchCourses()}
-          >
-            <Text style={styles.retryText}>Try Again</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    if (searchQuery)
-      return (
-        <View style={styles.centered}>
-          <Text style={styles.emptyIcon}>🔍</Text>
-          <Text style={styles.emptySubtitle}>
-            No results for "{searchQuery}"
-          </Text>
-        </View>
-      );
-    return null;
-  };
-
-  const renderFooter = () => {
-    if (!hasMore || courses.length === 0) return null;
-    if (isLoading)
-      return (
-        <View style={{ paddingVertical: 20, alignItems: "center" }}>
-          <ActivityIndicator color={Colors.primary} />
-        </View>
-      );
-    return null;
-  };
-
-  return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <OfflineBanner />
-
-      {/* Header */}
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>
-            Hello,{" "}
-            {user?.fullName?.split(" ")[0] || user?.username || "Learner"} 👋
-          </Text>
-          <Text style={styles.headline}>Explore Courses</Text>
-        </View>
-        <View style={styles.avatarCircle}>
-          <Text style={styles.avatarLetter}>
-            {(user?.fullName || user?.username || "L")[0].toUpperCase()}
-          </Text>
-        </View>
-      </View>
-
-      {/* Stats bar */}
-      <View style={styles.statsBar}>
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>{courses.length}</Text>
-          <Text style={styles.statLabel}>Courses</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>Free</Text>
-          <Text style={styles.statLabel}>Access</Text>
-        </View>
-        <View style={styles.statDivider} />
-        <View style={styles.statItem}>
-          <Text style={styles.statValue}>HD</Text>
-          <Text style={styles.statLabel}>Quality</Text>
-        </View>
-      </View>
-
-=======
   const getItemLayout = useCallback(
     (_: unknown, index: number) => ({
       length: ITEM_HEIGHT,
@@ -324,7 +207,6 @@ export default function HomeScreen() {
     // edges={[]} removes ALL safe area borders including the red top line
     <SafeAreaView style={styles.container} edges={["top"]}>
       <OfflineBanner />
->>>>>>> Stashed changes
       <FlatList
         data={courses}
         renderItem={renderItem}
@@ -332,9 +214,18 @@ export default function HomeScreen() {
         getItemLayout={getItemLayout}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={renderEmpty}
-<<<<<<< Updated upstream
         ListFooterComponent={renderFooter}
         onEndReached={onEndReached}
+        ListFooterComponent={
+          hasMore && isLoading && courses.length > 0 ? (
+            <View style={{ paddingVertical: 24, alignItems: "center" }}>
+              <ActivityIndicator color={Colors.primary} />
+            </View>
+          ) : (
+            <View style={{ height: 20 }} />
+          )
+        }
+        onEndReached={() => fetchMore()}
         onEndReachedThreshold={0.5}
         refreshControl={
           <RefreshControl

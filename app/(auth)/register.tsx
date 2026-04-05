@@ -5,15 +5,15 @@ import { router } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import {
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import Toast from "react-native-toast-message";
 
@@ -65,12 +65,6 @@ export default function RegisterScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {/* Back */}
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
-          <Ionicons name="arrow-back" size={20} color={Colors.textMuted} />
-          <Text style={styles.backText}>Back</Text>
-        </TouchableOpacity>
-
         {/* Logo */}
         <View style={styles.logoRow}>
           <View style={styles.logoBox}>
@@ -87,7 +81,6 @@ export default function RegisterScreen() {
           <Text style={styles.cardTitle}>Create Account</Text>
           <Text style={styles.cardSub}>Join thousands of learners today</Text>
 
-          {/* Username */}
           <View style={styles.field}>
             <Text style={styles.label}>Username</Text>
             <View style={styles.inputWrap}>
@@ -109,7 +102,6 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          {/* Email */}
           <View style={styles.field}>
             <Text style={styles.label}>Email</Text>
             <View style={styles.inputWrap}>
@@ -131,7 +123,6 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          {/* Password */}
           <View style={styles.field}>
             <Text style={styles.label}>Password</Text>
             <View style={styles.inputWrap}>
@@ -162,7 +153,6 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          {/* Confirm Password */}
           <View style={styles.field}>
             <Text style={styles.label}>Confirm Password</Text>
             <View style={styles.inputWrap}>
@@ -197,14 +187,12 @@ export default function RegisterScreen() {
             </View>
           </View>
 
-          {/* Terms */}
           <Text style={styles.terms}>
-            By signing up, you agree to our{" "}
-            <Text style={styles.termsLink}>Terms of Service</Text> and{" "}
+            By signing up you agree to our{" "}
+            <Text style={styles.termsLink}>Terms</Text> &{" "}
             <Text style={styles.termsLink}>Privacy Policy</Text>
           </Text>
 
-          {/* CTA */}
           <TouchableOpacity
             onPress={handleRegister}
             disabled={isLoading}
@@ -232,19 +220,17 @@ export default function RegisterScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
-  scroll: { flexGrow: 1, padding: 20, paddingTop: 16 },
-  backBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    marginBottom: 24,
+  scroll: {
+    flexGrow: 1,
+    padding: 24,
+    paddingTop: 40,
+    justifyContent: "center",
   },
-  backText: { color: Colors.textMuted, fontSize: 14 },
   logoRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: 14,
-    marginBottom: 28,
+    marginBottom: 32,
   },
   logoBox: {
     width: 56,
@@ -296,12 +282,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.surfaceBorder,
   },
   inputIcon: { marginRight: 10 },
-  input: {
-    flex: 1,
-    color: Colors.text,
-    fontSize: 14,
-    paddingVertical: 13,
-  },
+  input: { flex: 1, color: Colors.text, fontSize: 14, paddingVertical: 13 },
   eyeBtn: { padding: 4 },
   terms: {
     color: Colors.textDim,
