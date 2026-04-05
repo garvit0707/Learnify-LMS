@@ -5,7 +5,8 @@ import { Colors } from "@/constants/colors";
 import { useAuthStore } from "@/store/authStore";
 import { useCourseStore } from "@/store/courseStore";
 import { Course } from "@/types";
-import React, { useCallback, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import React, { useCallback, useEffect, useRef } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -20,6 +21,116 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 const ITEM_HEIGHT = 348;
 
+=======
+  ActivityIndicator,
+  Animated,
+  FlatList,
+  ListRenderItem,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+const ITEM_HEIGHT = 348;
+
+function HeroCard({ name }: { name: string }) {
+  const float1 = useRef(new Animated.Value(0)).current;
+  const float2 = useRef(new Animated.Value(0)).current;
+  const float3 = useRef(new Animated.Value(0)).current;
+  const fadeIn = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeIn, {
+      toValue: 1,
+      duration: 700,
+      useNativeDriver: true,
+    }).start();
+
+    const makeFloat = (anim: Animated.Value, delay: number) =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(anim, {
+            toValue: -10,
+            duration: 2200 + delay,
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim, {
+            toValue: 0,
+            duration: 2200 + delay,
+            useNativeDriver: true,
+          }),
+        ]),
+      ).start();
+
+    makeFloat(float1, 0);
+    makeFloat(float2, 400);
+    makeFloat(float3, 700);
+  }, []);
+
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+  const greetEmoji = hour < 12 ? "☀️" : hour < 17 ? "👋" : "🌙";
+
+  return (
+    <Animated.View style={[styles.hero, { opacity: fadeIn }]}>
+      {/* Decorative blobs */}
+      <Animated.View
+        style={[styles.blob1, { transform: [{ translateY: float1 }] }]}
+      />
+      <Animated.View
+        style={[styles.blob2, { transform: [{ translateY: float2 }] }]}
+      />
+      <Animated.View
+        style={[styles.blob3, { transform: [{ translateY: float3 }] }]}
+      />
+
+      {/* Floating icons */}
+      <Animated.View
+        style={[styles.fi, styles.fi1, { transform: [{ translateY: float1 }] }]}
+      >
+        <Text style={styles.fiText}>📚</Text>
+      </Animated.View>
+      <Animated.View
+        style={[styles.fi, styles.fi2, { transform: [{ translateY: float2 }] }]}
+      >
+        <Text style={styles.fiText}>🏆</Text>
+      </Animated.View>
+      <Animated.View
+        style={[styles.fi, styles.fi3, { transform: [{ translateY: float3 }] }]}
+      >
+        <Text style={[styles.fiText, { fontSize: 16 }]}>⚡</Text>
+      </Animated.View>
+
+      <View style={styles.heroContent}>
+        <Text style={styles.heroGreeting}>
+          {greeting} {greetEmoji}
+        </Text>
+        <Text style={styles.heroName}>{name}</Text>
+        <Text style={styles.heroSub}>What are you learning today?</Text>
+        <View style={styles.heroPillRow}>
+          <View style={styles.heroPill}>
+            <Ionicons name="flash" size={11} color={Colors.primary} />
+            <Text style={styles.heroPillText}>Top Rated</Text>
+          </View>
+          <View style={styles.heroPill}>
+            <Ionicons name="star" size={11} color="#FBBF24" />
+            <Text style={styles.heroPillText}>Expert Led</Text>
+          </View>
+          <View style={styles.heroPill}>
+            <Ionicons name="ribbon-outline" size={11} color={Colors.success} />
+            <Text style={styles.heroPillText}>Certified</Text>
+          </View>
+        </View>
+      </View>
+    </Animated.View>
+  );
+}
+
+>>>>>>> Stashed changes
 export default function HomeScreen() {
   const fetchCourses = useCourseStore((s) => s.fetchCourses);
   const fetchMore = useCourseStore((s) => s.fetchMore);
@@ -142,6 +253,78 @@ export default function HomeScreen() {
         </View>
       </View>
 
+=======
+  const getItemLayout = useCallback(
+    (_: unknown, index: number) => ({
+      length: ITEM_HEIGHT,
+      offset: ITEM_HEIGHT * index,
+      index,
+    }),
+    [],
+  );
+
+  const ListHeader = (
+    <View style={styles.listHeaderWrap}>
+      <HeroCard
+        name={user?.fullName?.split(" ")[0] || user?.username || "Learner"}
+      />
+      <SearchBar value={searchQuery} onChangeText={setSearchQuery} />
+      {!searchQuery && (
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionTitle}>All Courses</Text>
+          <View style={styles.countChip}>
+            <Text style={styles.countChipText}>{courses.length} courses</Text>
+          </View>
+        </View>
+      )}
+      {searchQuery && (
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionTitle}>Results for "{searchQuery}"</Text>
+          <Text style={styles.countText}>{courses.length} found</Text>
+        </View>
+      )}
+    </View>
+  );
+
+  const renderEmpty = () => {
+    if (isLoading)
+      return (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+          <Text style={styles.loadingText}>Fetching courses...</Text>
+        </View>
+      );
+    if (error)
+      return (
+        <View style={styles.centered}>
+          <Text style={{ fontSize: 48, marginBottom: 16 }}>😕</Text>
+          <Text style={styles.emptyTitle}>Failed to load</Text>
+          <Text style={styles.emptySubtitle}>{error}</Text>
+          <TouchableOpacity
+            style={styles.retryBtn}
+            onPress={() => fetchCourses()}
+          >
+            <Text style={styles.retryText}>Try Again</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    if (searchQuery && courses.length === 0)
+      return (
+        <View style={styles.centered}>
+          <Text style={{ fontSize: 48, marginBottom: 12 }}>🔍</Text>
+          <Text style={styles.emptySubtitle}>
+            No results for "{searchQuery}"
+          </Text>
+        </View>
+      );
+    return null;
+  };
+
+  return (
+    // edges={[]} removes ALL safe area borders including the red top line
+    <SafeAreaView style={styles.container} edges={["top"]}>
+      <OfflineBanner />
+>>>>>>> Stashed changes
       <FlatList
         data={courses}
         renderItem={renderItem}
@@ -149,6 +332,7 @@ export default function HomeScreen() {
         getItemLayout={getItemLayout}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={renderEmpty}
+<<<<<<< Updated upstream
         ListFooterComponent={renderFooter}
         onEndReached={onEndReached}
         onEndReachedThreshold={0.5}
@@ -157,6 +341,7 @@ export default function HomeScreen() {
             refreshing={isRefreshing}
             onRefresh={onRefresh}
             tintColor={Colors.primary}
+            colors={[Colors.primary]}
           />
         }
         showsVerticalScrollIndicator={false}

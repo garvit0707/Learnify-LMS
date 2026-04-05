@@ -15,3 +15,18 @@ export default function OfflineBanner() {
     </View>
   );
 }
+<<<<<<< Updated upstream
+=======
+
+const styles = StyleSheet.create({
+  banner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    // backgroundColor: Colors.error,
+    paddingVertical: 10,
+  },
+  text: { color: "#fff", fontSize: 13, fontWeight: "600" },
+});
+>>>>>>> Stashed changes
