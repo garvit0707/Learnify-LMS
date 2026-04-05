@@ -5,7 +5,11 @@
     "version": "1.0.0",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/images/Learnify.png",
+
     "splash": {
+      "image": "./assets/images/Learnify.png",
+      "resizeMode": "contain",
       "backgroundColor": "#0F172A"
     },
     "ios": {
@@ -14,6 +18,7 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/images/Learnify.png",
         "backgroundColor": "#0F172A"
       },
       "package": "com.learnify.lms",
