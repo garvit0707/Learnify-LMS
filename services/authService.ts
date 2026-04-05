@@ -11,7 +11,7 @@ interface RegisterPayload {
   email: string;
   username: string;
   password: string;
-  fullName: string;
+  role?: string;
 }
 
 interface AuthResponse {
@@ -20,44 +20,75 @@ interface AuthResponse {
   refreshToken: string;
 }
 
+export function extractErrorMessage(err: unknown, fallback: string): string {
+  if (!err || typeof err !== "object") return fallback;
+  const e = err as Record<string, any>;
+
+  // Axios error with response body
+  const apiMsg =
+    e?.response?.data?.message ||
+    e?.response?.data?.error ||
+    e?.response?.data?.errors?.[0]?.message ||
+    e?.response?.data?.errors?.[0];
+
+  if (apiMsg && typeof apiMsg === "string") return apiMsg;
+
+  // Network / timeout error
+  if (e?.message && typeof e.message === "string") {
+    if (e.message.includes("Network Error"))
+      return "No internet connection. Please check your network.";
+    if (e.message.includes("timeout"))
+      return "Request timed out. Please try again.";
+    return e.message;
+  }
+
+  return fallback;
+}
+
 export const authService = {
   async login(payload: LoginPayload): Promise<AuthResponse> {
-    try {
-      const { data } = await api.post("/api/v1/users/login", payload);
-      console.log("Login response:", JSON.stringify(data));
-      const user = data?.data?.user;
-      const accessToken = data?.data?.accessToken;
-      const refreshToken = data?.data?.refreshToken;
-      // if (!accessToken) throw new Error("No access token in response");
-      await SecureStorage.saveTokens(accessToken, refreshToken);
-      await SecureStorage.saveUser(user);
-      return { user, accessToken, refreshToken };
-    } catch (err: unknown) {
-      console.log("Login error:", JSON.stringify(err));
-      throw err;
-    }
+    const { data } = await api.post("/api/v1/users/login", {
+      email: payload.email.trim().toLowerCase(),
+      password: payload.password,
+    });
+
+    const { user, accessToken, refreshToken } = data.data;
+    if (!accessToken) throw new Error("Login failed: no token received");
+
+    await SecureStorage.saveTokens(accessToken, refreshToken);
+    await SecureStorage.saveUser(user);
+    return { user, accessToken, refreshToken };
   },
 
   async register(payload: RegisterPayload): Promise<AuthResponse> {
-    try {
-      const { data } = await api.post("/api/v1/users/register", payload);
-      console.log("Register response:", JSON.stringify(data));
-      const user = data?.data?.user;
-      const accessToken = data?.data?.accessToken;
-      const refreshToken = data?.data?.refreshToken;
-      if (!accessToken) throw new Error("No access token in response");
-      await SecureStorage.saveTokens(accessToken, refreshToken);
-      await SecureStorage.saveUser(user);
-      return { user, accessToken, refreshToken };
-    } catch (err: unknown) {
-      console.log("Register error:", err);
-      throw err;
-    }
+    // Step 1: Register
+    await api.post("/api/v1/users/register", {
+      email: payload.email.trim().toLowerCase(),
+      username: payload.username.trim().toLowerCase(),
+      password: payload.password,
+      role: payload.role || "USER",
+    });
+
+    // Step 2: Auto-login after registration (register doesn't return a token)
+    const { data } = await api.post("/api/v1/users/login", {
+      email: payload.email.trim().toLowerCase(),
+      password: payload.password,
+    });
+
+    const { user, accessToken, refreshToken } = data.data;
+    if (!accessToken)
+      throw new Error("Registration succeeded but login failed");
+
+    await SecureStorage.saveTokens(accessToken, refreshToken);
+    await SecureStorage.saveUser(user);
+    return { user, accessToken, refreshToken };
   },
 
   async logout(): Promise<void> {
     try {
       await api.post("/api/v1/users/logout");
+    } catch {
+      // Ignore logout API errors — always clear local storage
     } finally {
       await SecureStorage.clearAll();
     }
@@ -65,13 +96,14 @@ export const authService = {
 
   async getCurrentUser(): Promise<User> {
     const { data } = await api.get("/api/v1/users/current-user");
-    return data?.data as User;
+    if (!data?.data) throw new Error("Could not fetch user profile");
+    return data.data as User;
   },
 
   async updateAvatar(formData: FormData): Promise<User> {
     const { data } = await api.patch("/api/v1/users/avatar", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return data?.data as User;
+    return data.data as User;
   },
 };
