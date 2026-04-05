@@ -22,9 +22,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 const { width } = Dimensions.get("window");
-const BANNER_H = 160; // reduced height
+const BANNER_H = 160;
 
-// Decorative pattern — circles not emojis for cleaner look
 const CIRCLES = [
   { top: -30, left: -30, size: 140, opacity: 0.12 },
   { top: 20, left: width * 0.5, size: 100, opacity: 0.08 },
@@ -32,6 +31,43 @@ const CIRCLES = [
   { top: 60, left: width * 0.25, size: 60, opacity: 0.07 },
   { top: 80, left: width * 0.65, size: 120, opacity: 0.06 },
 ];
+
+// Generate a consistent dicebear avatar URL from username/email
+function getDefaultAvatarUrl(seed: string): string {
+  const cleanSeed = encodeURIComponent(seed || "user");
+  return `https://api.dicebear.com/7.x/avataaars/png?seed=${cleanSeed}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc&radius=50`;
+}
+
+function AvatarImage({
+  uri,
+  fallbackUri,
+  style,
+}: {
+  uri?: string;
+  fallbackUri: string;
+  style: object;
+}) {
+  const [imgUri, setImgUri] = useState(uri || fallbackUri);
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setImgUri(uri || fallbackUri);
+    setHasError(false);
+  }, [uri, fallbackUri]);
+
+  return (
+    <Image
+      source={{ uri: hasError ? fallbackUri : imgUri }}
+      style={style}
+      onError={() => {
+        if (!hasError) {
+          setHasError(true);
+          setImgUri(fallbackUri);
+        }
+      }}
+    />
+  );
+}
 
 export default function ProfileScreen() {
   const { user, logout, updateUser } = useAuthStore();
@@ -44,6 +80,18 @@ export default function ProfileScreen() {
 
   const bookmarkCount = Object.keys(bookmarks).length;
   const enrolledCount = Object.keys(enrolled).length;
+
+  const defaultAvatar = getDefaultAvatarUrl(
+    user?.username || user?.email || "learner",
+  );
+  const avatarUri = user?.avatar?.url || defaultAvatar;
+
+  const initials = (user?.fullName || user?.username || "L")
+    .split(" ")
+    .map((w: string) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   useEffect(() => {
     Animated.parallel([
@@ -86,19 +134,21 @@ export default function ProfileScreen() {
         updateUser(updated);
         Toast.show({ type: "success", text1: "Avatar updated!" });
       } catch {
-        Toast.show({ type: "error", text1: "Upload failed" });
+        Toast.show({
+          type: "error",
+          text1: "Upload failed",
+          text2: "Could not update avatar",
+        });
       } finally {
         setUploading(false);
       }
     }
   };
 
-  const initials = (user?.fullName || user?.username || "L")
-    .split(" ")
-    .map((w: string) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/(auth)/login");
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={["top"]}>
@@ -106,7 +156,7 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 50 }}
       >
-        {/* Compact banner */}
+        {/* Banner */}
         <View style={styles.banner}>
           {CIRCLES.map((c, i) => (
             <View
@@ -130,7 +180,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Avatar */}
+        {/* Avatar section */}
         <Animated.View
           style={[
             styles.avatarSection,
@@ -141,23 +191,25 @@ export default function ProfileScreen() {
             onPress={handlePickAvatar}
             style={styles.avatarWrap}
             activeOpacity={0.85}
+            disabled={uploading}
           >
-            {user?.avatar?.url ? (
-              <Image
-                source={{ uri: user.avatar.url }}
-                style={styles.avatarImg}
-              />
-            ) : (
-              <View style={styles.avatarFallback}>
-                <Text style={styles.avatarInitials}>{initials}</Text>
+            {/* Avatar image with dicebear fallback */}
+            <AvatarImage
+              uri={user?.avatar?.url}
+              fallbackUri={defaultAvatar}
+              style={styles.avatarImg}
+            />
+
+            {/* Upload overlay while uploading */}
+            {uploading && (
+              <View style={styles.avatarUploadOverlay}>
+                <ActivityIndicator color="#fff" size="small" />
               </View>
             )}
+
+            {/* Camera button */}
             <View style={styles.cameraBtn}>
-              {uploading ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <Ionicons name="camera" size={14} color="#fff" />
-              )}
+              <Ionicons name="camera" size={13} color="#fff" />
             </View>
           </TouchableOpacity>
 
@@ -233,6 +285,59 @@ export default function ProfileScreen() {
               />
               <Text style={styles.sectionTitle}>Account Info</Text>
             </View>
+
+            {/* Avatar row in account info */}
+            <View style={[styles.row, styles.rowBorder]}>
+              <View style={styles.iconWrap}>
+                <Ionicons
+                  name="image-outline"
+                  size={15}
+                  color={Colors.primary}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rowLabel}>Profile Photo</Text>
+                <Text style={styles.rowValue}>
+                  {user?.avatar?.url ? "Custom photo" : "Default avatar"}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={handlePickAvatar}
+                disabled={uploading}
+                style={styles.changeBtn}
+              >
+                {uploading ? (
+                  <ActivityIndicator size="small" color={Colors.primary} />
+                ) : (
+                  <Text style={styles.changeBtnText}>Change</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Avatar preview row */}
+            <View style={[styles.avatarPreviewRow, styles.rowBorder]}>
+              <View style={styles.iconWrap}>
+                <Ionicons
+                  name="person-outline"
+                  size={15}
+                  color={Colors.primary}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.rowLabel}>Current Avatar</Text>
+                <Text style={styles.rowValue} numberOfLines={1}>
+                  {user?.avatar?.url
+                    ? "Uploaded photo"
+                    : `Auto-generated · @${user?.username}`}
+                </Text>
+              </View>
+              <AvatarImage
+                uri={user?.avatar?.url}
+                fallbackUri={defaultAvatar}
+                style={styles.miniAvatar}
+              />
+            </View>
+
             {[
               {
                 icon: "at-outline",
@@ -331,6 +436,7 @@ export default function ProfileScreen() {
             ))}
           </View>
 
+          {/* Logout */}
           <TouchableOpacity
             onPress={() => setLogoutModal(true)}
             style={styles.logoutBtn}
@@ -352,14 +458,7 @@ export default function ProfileScreen() {
         title="Sign Out?"
         message="You'll need to sign back in to access your courses and bookmarks."
         actions={[
-          {
-            label: "Sign Out",
-            variant: "danger",
-            onPress: async () => {
-              await logout();
-              router.replace("/(auth)/login");
-            },
-          },
+          { label: "Sign Out", variant: "danger", onPress: handleLogout },
           { label: "Cancel", variant: "ghost", onPress: () => {} },
         ]}
       />
@@ -369,6 +468,8 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.bg },
+
+  // Banner
   banner: {
     height: BANNER_H,
     backgroundColor: Colors.primary,
@@ -376,10 +477,7 @@ const styles = StyleSheet.create({
     position: "relative",
     justifyContent: "flex-end",
   },
-  circle: {
-    position: "absolute",
-    backgroundColor: "#fff",
-  },
+  circle: { position: "absolute", backgroundColor: "#fff" },
   bannerContent: { padding: 20, paddingBottom: 18 },
   bannerTitle: {
     color: "#fff",
@@ -389,6 +487,7 @@ const styles = StyleSheet.create({
   },
   bannerSub: { color: "rgba(255,255,255,0.6)", fontSize: 13, marginTop: 2 },
 
+  // Avatar
   avatarSection: {
     alignItems: "center",
     marginTop: -44,
@@ -402,18 +501,15 @@ const styles = StyleSheet.create({
     borderRadius: 52,
     borderWidth: 4,
     borderColor: Colors.bg,
+    backgroundColor: Colors.surface,
   },
-  avatarFallback: {
-    width: 104,
-    height: 104,
+  avatarUploadOverlay: {
+    ...StyleSheet.absoluteFillObject,
     borderRadius: 52,
-    backgroundColor: Colors.primaryDark,
-    borderWidth: 4,
-    borderColor: Colors.bg,
+    backgroundColor: "rgba(0,0,0,0.5)",
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarInitials: { color: "#fff", fontSize: 34, fontWeight: "800" },
   cameraBtn: {
     position: "absolute",
     bottom: 2,
@@ -466,6 +562,7 @@ const styles = StyleSheet.create({
   },
   verifiedText: { color: Colors.success, fontSize: 12, fontWeight: "700" },
 
+  // Stats
   statsRow: {
     flexDirection: "row",
     gap: 10,
@@ -485,6 +582,7 @@ const styles = StyleSheet.create({
   statVal: { color: Colors.text, fontSize: 17, fontWeight: "800" },
   statLabel: { color: Colors.textDim, fontSize: 10 },
 
+  // Section cards
   sectionCard: {
     backgroundColor: Colors.card,
     borderRadius: 20,
@@ -518,6 +616,13 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     gap: 12,
   },
+  avatarPreviewRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 12,
+  },
   rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.surfaceBorder },
   iconWrap: {
     width: 32,
@@ -531,7 +636,27 @@ const styles = StyleSheet.create({
   },
   rowLabel: { color: Colors.textDim, fontSize: 11, marginBottom: 1 },
   rowValue: { color: Colors.text, fontSize: 14, fontWeight: "600" },
+  changeBtn: {
+    backgroundColor: "rgba(124,58,237,0.12)",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: "rgba(124,58,237,0.25)",
+    minWidth: 60,
+    alignItems: "center",
+  },
+  changeBtnText: { color: Colors.primary, fontSize: 12, fontWeight: "700" },
+  miniAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: Colors.surfaceBorder,
+    backgroundColor: Colors.surface,
+  },
 
+  // Logout
   logoutBtn: {
     flexDirection: "row",
     alignItems: "center",
