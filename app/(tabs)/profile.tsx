@@ -1,5 +1,5 @@
 import AppModal from "@/components/Modal";
-import { Colors } from "@/constants/colors";
+import { Colors , withAlpha} from "@/constants/colors";
 import { authService } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
 import { useBookmarkStore } from "@/store/bookmarkStore";
@@ -485,7 +485,7 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: -0.5,
   },
-  bannerSub: { color: "rgba(255,255,255,0.6)", fontSize: 13, marginTop: 2 },
+  bannerSub: { color: withAlpha(Colors.white, 0.6), fontSize: 13, marginTop: 2 },
 
   // Avatar
   avatarSection: {
@@ -506,7 +506,7 @@ const styles = StyleSheet.create({
   avatarUploadOverlay: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: 52,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: withAlpha(Colors.black, 0.5),
     alignItems: "center",
     justifyContent: "center",
   },
@@ -536,12 +536,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: "rgba(124,58,237,0.12)",
+    backgroundColor: withAlpha(Colors.primary, 0.12),
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderWidth: 1,
-    borderColor: "rgba(124,58,237,0.25)",
+    borderColor: withAlpha(Colors.primary, 0.25),
   },
   roleText: {
     color: Colors.primary,
@@ -553,12 +553,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
-    backgroundColor: "rgba(16,185,129,0.1)",
+    backgroundColor: withAlpha(Colors.success, 0.1),
     borderRadius: 20,
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderWidth: 1,
-    borderColor: "rgba(16,185,129,0.25)",
+    borderColor: withAlpha(Colors.success, 0.25),
   },
   verifiedText: { color: Colors.success, fontSize: 12, fontWeight: "700" },
 
@@ -628,21 +628,21 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 10,
-    backgroundColor: "rgba(124,58,237,0.1)",
+    backgroundColor: withAlpha(Colors.primary, 0.1),
     borderWidth: 1,
-    borderColor: "rgba(124,58,237,0.15)",
+    borderColor: withAlpha(Colors.primary, 0.15),
     alignItems: "center",
     justifyContent: "center",
   },
   rowLabel: { color: Colors.textDim, fontSize: 11, marginBottom: 1 },
   rowValue: { color: Colors.text, fontSize: 14, fontWeight: "600" },
   changeBtn: {
-    backgroundColor: "rgba(124,58,237,0.12)",
+    backgroundColor: withAlpha(Colors.primary, 0.12),
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: "rgba(124,58,237,0.25)",
+    borderColor: withAlpha(Colors.primary, 0.25),
     minWidth: 60,
     alignItems: "center",
   },
@@ -664,11 +664,11 @@ const styles = StyleSheet.create({
     gap: 8,
     marginHorizontal: 16,
     marginBottom: 14,
-    backgroundColor: "rgba(239,68,68,0.07)",
+    backgroundColor: withAlpha(Colors.error, 0.07),
     borderRadius: 16,
     paddingVertical: 14,
     borderWidth: 1,
-    borderColor: "rgba(239,68,68,0.18)",
+    borderColor: withAlpha(Colors.error, 0.18),
   },
   logoutText: { color: Colors.error, fontSize: 15, fontWeight: "700" },
   version: {

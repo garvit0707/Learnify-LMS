@@ -1,4 +1,4 @@
-import { Colors } from "@/constants/colors";
+import { Colors , withAlpha} from "@/constants/colors";
 import { extractErrorMessage } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
 import { Ionicons } from "@expo/vector-icons";
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.surfaceBorder,
   },
-  inputWrapActive: { borderColor: "rgba(124,58,237,0.4)" },
+  inputWrapActive: { borderColor: withAlpha(Colors.primary, 0.4) },
   inputIcon: { marginRight: 10 },
   input: { flex: 1, color: Colors.text, fontSize: 14, paddingVertical: 14 },
   btn: {

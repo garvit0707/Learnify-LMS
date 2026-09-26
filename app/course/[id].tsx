@@ -1,5 +1,5 @@
 import AppModal from "@/components/Modal";
-import { Colors } from "@/constants/colors";
+import { Colors , withAlpha} from "@/constants/colors";
 import { courseService } from "@/services/courseService";
 import { useBookmarkStore } from "@/store/bookmarkStore";
 import { Course } from "@/types";
@@ -408,8 +408,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   headerBtnActive: {
-    backgroundColor: "rgba(124,58,237,0.15)",
-    borderColor: "rgba(124,58,237,0.4)",
+    backgroundColor: withAlpha(Colors.primary, 0.15),
+    borderColor: withAlpha(Colors.primary, 0.4),
   },
   headerTitle: {
     color: Colors.text,
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
   hero: { width: "100%", height: "100%" },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(10,10,15,0.4)",
+    backgroundColor: withAlpha(Colors.bg, 0.4),
   },
   heroBadges: {
     position: "absolute",
@@ -434,12 +434,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   catPill: {
-    backgroundColor: "rgba(124,58,237,0.85)",
+    backgroundColor: withAlpha(Colors.primary, 0.85),
     paddingHorizontal: 12,
     paddingVertical: 5,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(167,139,250,0.4)",
+    borderColor: withAlpha(Colors.primaryGlow, 0.4),
   },
   catPillText: {
     color: "#fff",
@@ -452,12 +452,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "rgba(10,10,15,0.85)",
+    backgroundColor: withAlpha(Colors.bg, 0.85),
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(251,191,36,0.25)",
+    borderColor: withAlpha(Colors.amber, 0.25),
   },
   ratingText: { color: "#FBBF24", fontSize: 12, fontWeight: "700" },
   content: { padding: 20 },
@@ -515,20 +515,20 @@ const styles = StyleSheet.create({
   instructorMeta: { flexDirection: "row", alignItems: "center", gap: 4 },
   instructorRating: { color: Colors.textMuted, fontSize: 12 },
   followBtn: {
-    backgroundColor: "rgba(124,58,237,0.12)",
+    backgroundColor: withAlpha(Colors.primary, 0.12),
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 7,
     borderWidth: 1,
-    borderColor: "rgba(124,58,237,0.3)",
+    borderColor: withAlpha(Colors.primary, 0.3),
   },
   followText: { color: Colors.primary, fontSize: 12, fontWeight: "700" },
   progressCard: {
-    backgroundColor: "rgba(124,58,237,0.1)",
+    backgroundColor: withAlpha(Colors.primary, 0.1),
     borderRadius: 16,
     padding: 16,
     borderWidth: 1,
-    borderColor: "rgba(124,58,237,0.3)",
+    borderColor: withAlpha(Colors.primary, 0.3),
     marginBottom: 20,
   },
   progressHeader: {
@@ -565,9 +565,9 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: 10,
-    backgroundColor: "rgba(124,58,237,0.15)",
+    backgroundColor: withAlpha(Colors.primary, 0.15),
     borderWidth: 1,
-    borderColor: "rgba(124,58,237,0.3)",
+    borderColor: withAlpha(Colors.primary, 0.3),
     alignItems: "center",
     justifyContent: "center",
     marginTop: 1,
@@ -606,12 +606,12 @@ const styles = StyleSheet.create({
   lessonLocked: { color: Colors.textDim },
   lessonDur: { color: Colors.textDim, fontSize: 11 },
   freePill: {
-    backgroundColor: "rgba(16,185,129,0.12)",
+    backgroundColor: withAlpha(Colors.success, 0.12),
     borderRadius: 10,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderWidth: 1,
-    borderColor: "rgba(16,185,129,0.3)",
+    borderColor: withAlpha(Colors.success, 0.3),
   },
   freePillText: { color: Colors.success, fontSize: 10, fontWeight: "700" },
   priceCard: {
@@ -636,12 +636,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "rgba(16,185,129,0.1)",
+    backgroundColor: withAlpha(Colors.success, 0.1),
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "rgba(16,185,129,0.25)",
+    borderColor: withAlpha(Colors.success, 0.25),
   },
   stockText: { color: Colors.success, fontSize: 12, fontWeight: "600" },
   ctaBar: {

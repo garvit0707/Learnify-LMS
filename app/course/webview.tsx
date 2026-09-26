@@ -1,4 +1,4 @@
-import { Colors } from "@/constants/colors";
+import { Colors , withAlpha} from "@/constants/colors";
 import { Course } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -555,9 +555,9 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 36,
-    backgroundColor: "rgba(239,68,68,0.1)",
+    backgroundColor: withAlpha(Colors.error, 0.1),
     borderWidth: 1,
-    borderColor: "rgba(239,68,68,0.2)",
+    borderColor: withAlpha(Colors.error, 0.2),
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 4,

@@ -1,4 +1,4 @@
-import { Colors } from "@/constants/colors";
+import { Colors , withAlpha} from "@/constants/colors";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useRef } from "react";
 import {
@@ -159,7 +159,7 @@ export default function AppModal({
 const styles = StyleSheet.create({
   backdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.65)",
+    backgroundColor: withAlpha(Colors.black, 0.65),
   },
   sheet: {
     position: "absolute",
@@ -220,8 +220,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.primaryLight,
   },
   actionDanger: {
-    backgroundColor: "rgba(239,68,68,0.1)",
-    borderColor: "rgba(239,68,68,0.3)",
+    backgroundColor: withAlpha(Colors.error, 0.1),
+    borderColor: withAlpha(Colors.error, 0.3),
   },
   actionGhost: {
     backgroundColor: "transparent",

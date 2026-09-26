@@ -1,5 +1,5 @@
 import CourseCard from "@/components/CourseCard";
-import { Colors } from "@/constants/colors";
+import { Colors , withAlpha} from "@/constants/colors";
 import { useBookmarkStore } from "@/store/bookmarkStore";
 import { Course } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
@@ -167,9 +167,9 @@ const styles = StyleSheet.create({
     width: 90,
     height: 90,
     borderRadius: 45,
-    backgroundColor: "rgba(124,58,237,0.1)",
+    backgroundColor: withAlpha(Colors.primary, 0.1),
     borderWidth: 1,
-    borderColor: "rgba(124,58,237,0.2)",
+    borderColor: withAlpha(Colors.primary, 0.2),
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 24,

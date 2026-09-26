@@ -1,7 +1,7 @@
 import CourseCard from "@/components/CourseCard";
 import OfflineBanner from "@/components/OfflineBanner";
 import SearchBar from "@/components/SearchBar";
-import { Colors } from "@/constants/colors";
+import { Colors , withAlpha} from "@/constants/colors";
 import { useAuthStore } from "@/store/authStore";
 import { useCourseStore } from "@/store/courseStore";
 import { Course } from "@/types";
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     width: 170,
     height: 170,
     borderRadius: 85,
-    backgroundColor: "rgba(124,58,237,0.13)",
+    backgroundColor: withAlpha(Colors.primary, 0.13),
   },
   blob2: {
     position: "absolute",
@@ -278,7 +278,7 @@ const styles = StyleSheet.create({
     width: 130,
     height: 130,
     borderRadius: 65,
-    backgroundColor: "rgba(6,182,212,0.09)",
+    backgroundColor: withAlpha(Colors.accent, 0.09),
   },
   blob3: {
     position: "absolute",
@@ -287,13 +287,13 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "rgba(124,58,237,0.06)",
+    backgroundColor: withAlpha(Colors.primary, 0.06),
   },
   fi: {
     position: "absolute",
-    backgroundColor: "rgba(255,255,255,0.06)",
+    backgroundColor: withAlpha(Colors.white, 0.06),
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.09)",
+    borderColor: withAlpha(Colors.white, 0.09),
     borderRadius: 14,
     padding: 9,
   },
@@ -321,12 +321,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
-    backgroundColor: "rgba(124,58,237,0.1)",
+    backgroundColor: withAlpha(Colors.primary, 0.1),
     borderRadius: 20,
     paddingHorizontal: 9,
     paddingVertical: 4,
     borderWidth: 1,
-    borderColor: "rgba(124,58,237,0.18)",
+    borderColor: withAlpha(Colors.primary, 0.18),
   },
   heroPillText: { color: Colors.textMuted, fontSize: 11, fontWeight: "600" },
 

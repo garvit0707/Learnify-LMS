@@ -1,4 +1,4 @@
-import { Colors } from "@/constants/colors";
+import { Colors , withAlpha} from "@/constants/colors";
 import { useBookmarkStore } from "@/store/bookmarkStore";
 import { Course } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
   },
   thumbOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(10,10,15,0.25)",
+    backgroundColor: withAlpha(Colors.bg, 0.25),
   },
   thumbTop: {
     position: "absolute",
@@ -239,12 +239,12 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   catBadge: {
-    backgroundColor: "rgba(124,58,237,0.88)",
+    backgroundColor: withAlpha(Colors.primary, 0.88),
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(167,139,250,0.4)",
+    borderColor: withAlpha(Colors.primaryGlow, 0.4),
     maxWidth: 140,
   },
   catText: {
@@ -258,15 +258,15 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: "rgba(10,10,15,0.65)",
+    backgroundColor: withAlpha(Colors.bg, 0.65),
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.12)",
+    borderColor: withAlpha(Colors.white, 0.12),
     alignItems: "center",
     justifyContent: "center",
   },
   bookmarkActive: {
-    backgroundColor: "rgba(124,58,237,0.3)",
-    borderColor: "rgba(167,139,250,0.6)",
+    backgroundColor: withAlpha(Colors.primary, 0.3),
+    borderColor: withAlpha(Colors.primaryGlow, 0.6),
   },
   thumbBottom: {
     position: "absolute",
@@ -281,24 +281,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 3,
-    backgroundColor: "rgba(10,10,15,0.82)",
+    backgroundColor: withAlpha(Colors.bg, 0.82),
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(251,191,36,0.2)",
+    borderColor: withAlpha(Colors.amber, 0.2),
   },
   ratingText: { color: "#FBBF24", fontSize: 10, fontWeight: "700" },
   stockPill: {
     flexDirection: "row",
     alignItems: "center",
     gap: 3,
-    backgroundColor: "rgba(10,10,15,0.82)",
+    backgroundColor: withAlpha(Colors.bg, 0.82),
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.08)",
+    borderColor: withAlpha(Colors.white, 0.08),
   },
   stockText: { color: Colors.textMuted, fontSize: 10 },
 
