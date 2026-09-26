@@ -1,9 +1,10 @@
 import AppModal from "@/components/Modal";
-import { Colors , withAlpha} from "@/constants/colors";
-import { authService } from "@/services/authService";
+import { Colors, withAlpha } from "@/constants/colors";
+import { authService, extractErrorMessage } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
 import { useBookmarkStore } from "@/store/bookmarkStore";
 import { Ionicons } from "@expo/vector-icons";
+import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
@@ -124,20 +125,28 @@ export default function ProfileScreen() {
     if (!result.canceled && result.assets[0]) {
       setUploading(true);
       try {
+        const asset = result.assets[0];
+        // image cropping that i ave added here thats it
+        const manipulated = await manipulateAsync(
+          asset.uri,
+          [{ resize: { width: 512, height: 512 } }],
+          { compress: 0.7, format: SaveFormat.JPEG },
+        );
         const formData = new FormData();
         formData.append("avatar", {
-          uri: result.assets[0].uri,
+          uri: manipulated.uri,
           type: "image/jpeg",
           name: "avatar.jpg",
         } as any);
         const updated = await authService.updateAvatar(formData);
         updateUser(updated);
         Toast.show({ type: "success", text1: "Avatar updated!" });
-      } catch {
+      } catch (err) {
+        console.log("Avatar upload error:", err);
         Toast.show({
           type: "error",
           text1: "Upload failed",
-          text2: "Could not update avatar",
+          text2: extractErrorMessage(err, "Could not update avatar"),
         });
       } finally {
         setUploading(false);
@@ -485,7 +494,11 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: -0.5,
   },
-  bannerSub: { color: withAlpha(Colors.white, 0.6), fontSize: 13, marginTop: 2 },
+  bannerSub: {
+    color: withAlpha(Colors.white, 0.6),
+    fontSize: 13,
+    marginTop: 2,
+  },
 
   // Avatar
   avatarSection: {

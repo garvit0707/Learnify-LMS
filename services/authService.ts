@@ -103,6 +103,7 @@ export const authService = {
   async updateAvatar(formData: FormData): Promise<User> {
     const { data } = await api.patch("/api/v1/users/avatar", formData, {
       headers: { "Content-Type": "multipart/form-data" },
+      transformRequest: (reqData) => reqData,
     });
     return data.data as User;
   },
