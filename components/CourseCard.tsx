@@ -1,4 +1,5 @@
-import { Colors , withAlpha} from "@/constants/colors";
+import { getAvatarUrl } from "@/constants/avatars";
+import { Colors, withAlpha } from "@/constants/colors";
 import { useBookmarkStore } from "@/store/bookmarkStore";
 import { Course } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
@@ -130,9 +131,7 @@ const CourseCard = memo(
             <Image
               source={{ uri: course.instructorAvatar }}
               style={styles.avatar}
-              defaultSource={{
-                uri: `https://api.dicebear.com/7.x/avataaars/png?seed=default`,
-              }}
+              defaultSource={{ uri: getAvatarUrl("default") }}
             />
             <Text style={styles.instructorName} numberOfLines={1}>
               {course.instructorName}

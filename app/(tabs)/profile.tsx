@@ -1,4 +1,5 @@
 import AppModal from "@/components/Modal";
+import { getAvatarUrl } from "@/constants/avatars";
 import { Colors, withAlpha } from "@/constants/colors";
 import { authService, extractErrorMessage } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
@@ -34,10 +35,7 @@ const CIRCLES = [
 ];
 
 // Generate a consistent dicebear avatar URL from username/email
-function getDefaultAvatarUrl(seed: string): string {
-  const cleanSeed = encodeURIComponent(seed || "user");
-  return `https://api.dicebear.com/7.x/avataaars/png?seed=${cleanSeed}&backgroundColor=b6e3f4,c0aede,d1d4f9,ffd5dc&radius=50`;
-}
+const getDefaultAvatarUrl = getAvatarUrl;
 
 function AvatarImage({
   uri,
@@ -85,14 +83,6 @@ export default function ProfileScreen() {
   const defaultAvatar = getDefaultAvatarUrl(
     user?.username || user?.email || "learner",
   );
-  const avatarUri = user?.avatar?.url || defaultAvatar;
-
-  const initials = (user?.fullName || user?.username || "L")
-    .split(" ")
-    .map((w: string) => w[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
 
   useEffect(() => {
     Animated.parallel([
