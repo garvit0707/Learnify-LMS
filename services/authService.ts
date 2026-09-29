@@ -1,3 +1,4 @@
+import { API_ENDPOINTS } from "@/constants/api";
 import { User } from "@/types";
 import { SecureStorage } from "@/utils/secureStore";
 import api from "./api";
@@ -47,7 +48,7 @@ export function extractErrorMessage(err: unknown, fallback: string): string {
 
 export const authService = {
   async login(payload: LoginPayload): Promise<AuthResponse> {
-    const { data } = await api.post("/api/v1/users/login", {
+    const { data } = await api.post(API_ENDPOINTS.login, {
       email: payload.email.trim().toLowerCase(),
       password: payload.password,
     });
@@ -62,7 +63,7 @@ export const authService = {
 
   async register(payload: RegisterPayload): Promise<AuthResponse> {
     // Step 1: Register
-    await api.post("/api/v1/users/register", {
+    await api.post(API_ENDPOINTS.register, {
       email: payload.email.trim().toLowerCase(),
       username: payload.username.trim().toLowerCase(),
       password: payload.password,
@@ -70,7 +71,7 @@ export const authService = {
     });
 
     // Step 2: Auto-login after registration (register doesn't return a token)
-    const { data } = await api.post("/api/v1/users/login", {
+    const { data } = await api.post(API_ENDPOINTS.login, {
       email: payload.email.trim().toLowerCase(),
       password: payload.password,
     });
@@ -86,7 +87,7 @@ export const authService = {
 
   async logout(): Promise<void> {
     try {
-      await api.post("/api/v1/users/logout");
+      await api.post(API_ENDPOINTS.logout);
     } catch {
       // Ignore logout API errors — always clear local storage
     } finally {
@@ -95,13 +96,13 @@ export const authService = {
   },
 
   async getCurrentUser(): Promise<User> {
-    const { data } = await api.get("/api/v1/users/current-user");
+    const { data } = await api.get(API_ENDPOINTS.currentUser);
     if (!data?.data) throw new Error("Could not fetch user profile");
     return data.data as User;
   },
 
   async updateAvatar(formData: FormData): Promise<User> {
-    const { data } = await api.patch("/api/v1/users/avatar", formData, {
+    const { data } = await api.patch(API_ENDPOINTS.avatar, formData, {
       headers: { "Content-Type": "multipart/form-data" },
       transformRequest: (reqData) => reqData,
     });

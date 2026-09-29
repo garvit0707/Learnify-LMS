@@ -1,4 +1,5 @@
 import { SecureStorage } from "@/utils/secureStore";
+import { API_BASE_URL, API_ENDPOINTS, API_MAX_RETRIES, API_TIMEOUT } from "@/constants/api";
 import axios, {
     AxiosError,
     AxiosInstance,
@@ -6,13 +7,9 @@ import axios, {
 } from "axios";
 import { router } from "expo-router";
 
-const BASE_URL = "https://api.freeapi.app";
-const TIMEOUT = 15000;
-const MAX_RETRIES = 3;
-
 const api: AxiosInstance = axios.create({
-  baseURL: BASE_URL,
-  timeout: TIMEOUT,
+  baseURL: API_BASE_URL,
+  timeout: API_TIMEOUT,
   headers: {
     "Content-Type": "application/json",
   },
@@ -47,7 +44,7 @@ api.interceptors.response.use(
         if (!refreshToken) throw new Error("No refresh token");
 
         const { data } = await axios.post(
-          `${BASE_URL}/api/v1/users/refresh-token`,
+          `${API_BASE_URL}${API_ENDPOINTS.refreshToken}`,
           { refreshToken },
         );
         const newToken = data?.data?.accessToken;
@@ -71,7 +68,7 @@ api.interceptors.response.use(
     // Retry logic for network errors
     if (!error.response) {
       originalRequest._retryCount = (originalRequest._retryCount || 0) + 1;
-      if (originalRequest._retryCount <= MAX_RETRIES) {
+      if (originalRequest._retryCount <= API_MAX_RETRIES) {
         await new Promise((res) =>
           setTimeout(res, 1000 * originalRequest._retryCount!),
         );

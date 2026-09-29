@@ -42,14 +42,16 @@ export interface Course {
 }
 
 export interface RawProduct {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  thumbnail: string;
-  category: string;
-  stock: number;
-  rating: number;
+  id?: number;
+  _id?: string;
+  productId?: string;
+  title?: string;
+  description?: string;
+  price?: number;
+  thumbnail?: string;
+  category?: string;
+  stock?: number;
+  rating?: number;
 }
 
 export interface RandomUser {
