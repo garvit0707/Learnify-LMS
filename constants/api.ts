@@ -11,4 +11,5 @@ export const API_ENDPOINTS = {
   avatar: "/api/v1/users/avatar",
   randomProducts: "/api/v1/public/randomproducts",
   randomUsers: "/api/v1/public/randomusers",
+  outerapi: "https://dummyjson.com/products?limit=10&skip=0",
 } as const;

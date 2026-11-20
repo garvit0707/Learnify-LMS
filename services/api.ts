@@ -1,12 +1,17 @@
+import {
+  API_BASE_URL,
+  API_ENDPOINTS,
+  API_MAX_RETRIES,
+  API_TIMEOUT,
+} from "@/constants/api";
 import { SecureStorage } from "@/utils/secureStore";
-import { API_BASE_URL, API_ENDPOINTS, API_MAX_RETRIES, API_TIMEOUT } from "@/constants/api";
 import axios, {
-    AxiosError,
-    AxiosInstance,
-    InternalAxiosRequestConfig,
+  AxiosError,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
 } from "axios";
 import { router } from "expo-router";
-
+// import { API_ENDPOINTS } from "@/constants/api";
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
@@ -80,4 +85,14 @@ api.interceptors.response.use(
   },
 );
 
+export const outerApi = async () => {
+  try {
+    const api = await fetch(API_ENDPOINTS.outerapi);
+
+    const api_res = await api.json();
+    console.log("api res", api_res);
+  } catch (error) {
+    console.log("the eroor caught while calling the api,", ErrorUtils);
+  }
+};
 export default api;

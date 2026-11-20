@@ -8,14 +8,17 @@ export default function Index() {
   const { isAuthenticated, isLoading } = useAuthStore();
 
   useEffect(() => {
-    if (!isLoading) {
-      if (isAuthenticated) {
-        router.replace("/(tabs)/home");
-      } else {
-        router.replace("/(auth)/login");
-      }
-    }
-  }, [isAuthenticated, isLoading]);
+    setTimeout(() => {
+      router.replace("/(tabs)/home");
+    }, 2000);
+    // if (!isLoading) {
+    //   if (isAuthenticated) {
+    //     router.replace("/(tabs)/home");
+    //   } else {
+    //     router.replace("/(auth)/login");
+    //   }
+    // }
+  }, []);
 
   return (
     <View

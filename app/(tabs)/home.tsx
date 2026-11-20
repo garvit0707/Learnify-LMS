@@ -1,7 +1,8 @@
 import CourseCard from "@/components/CourseCard";
 import OfflineBanner from "@/components/OfflineBanner";
 import SearchBar from "@/components/SearchBar";
-import { Colors , withAlpha} from "@/constants/colors";
+import { Colors, withAlpha } from "@/constants/colors";
+import { outerApi } from "@/services/api";
 import { useAuthStore } from "@/store/authStore";
 import { useCourseStore } from "@/store/courseStore";
 import { Course } from "@/types";
@@ -34,7 +35,7 @@ function HeroCard({ name }: { name: string }) {
       duration: 700,
       useNativeDriver: true,
     }).start();
-
+    outerApi();
     const makeFloat = (anim: Animated.Value, delay: number) =>
       Animated.loop(
         Animated.sequence([
