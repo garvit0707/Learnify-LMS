@@ -1,4 +1,5 @@
 import AuthLayout from "@/components/AuthLayout";
+import AuthSwitchPrompt from "@/components/AuthSwitchPrompt";
 import FormInput from "@/components/FormInput";
 import SubmitButton from "@/components/SubmitButton";
 import { Colors } from "@/constants/colors";
@@ -6,20 +7,42 @@ import { extractErrorMessage } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
 import { router } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
-import {
-  Keyboard,
-  StyleSheet,
-  Text,
-  TextInput as RNTextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Keyboard, StyleSheet, Text, TextInput as RNTextInput, View } from "react-native";
 import { showError } from "@/utils/toast";
 import {
   validateEmail,
   validatePassword,
   validateUsername,
 } from "@/utils/validation";
+
+const strengthOf = (password: string): { label: string; color: string } => {
+  if (password.length >= 10) return { label: "Strong", color: Colors.success };
+  if (password.length >= 6) return { label: "Fair", color: Colors.warning };
+  return { label: "Weak", color: Colors.error };
+};
+
+const PasswordStrength = React.memo(({ password }: { password: string }) => {
+  if (password.length === 0) return null;
+  const { label, color } = strengthOf(password);
+
+  return (
+    <View style={styles.strengthRow}>
+      {[1, 2, 3, 4].map((i) => (
+        <View
+          key={i}
+          style={[
+            styles.strengthBar,
+            { backgroundColor: password.length >= i * 3 ? color : Colors.surfaceBorder },
+          ]}
+        />
+      ))}
+      <Text style={styles.strengthText}>{label}</Text>
+    </View>
+  );
+});
+PasswordStrength.displayName = "PasswordStrength";
+
+const stripSpaces = (t: string) => t.replace(/\s/g, "");
 
 export default function RegisterScreen() {
   const [username, setUsername] = useState("");
@@ -65,7 +88,6 @@ export default function RegisterScreen() {
   const emailValid = email.includes("@") && email.includes(".");
   const passwordsMismatch =
     confirmPassword.length > 0 && password !== confirmPassword;
-  const strength = password.length > 0 ? strengthOf(password) : null;
 
   return (
     <AuthLayout
@@ -77,7 +99,7 @@ export default function RegisterScreen() {
         label="Username"
         icon="person-outline"
         value={username}
-        onChangeText={(t) => setUsername(t.replace(/\s/g, ""))}
+        onChangeText={(t) => setUsername(stripSpaces(t))}
         placeholder="johndoe"
         returnKeyType="next"
         onSubmitEditing={() => emailRef.current?.focus()}
@@ -90,7 +112,7 @@ export default function RegisterScreen() {
         label="Email Address"
         icon="mail-outline"
         value={email}
-        onChangeText={(t) => setEmail(t.replace(/\s/g, ""))}
+        onChangeText={(t) => setEmail(stripSpaces(t))}
         placeholder="you@example.com"
         keyboardType="email-address"
         autoComplete="email"
@@ -114,25 +136,7 @@ export default function RegisterScreen() {
           editable={!isSubmitting}
           inputRef={passRef}
         />
-        {strength && (
-          <View style={styles.strengthRow}>
-            {[1, 2, 3, 4].map((i) => (
-              <View
-                key={i}
-                style={[
-                  styles.strengthBar,
-                  {
-                    backgroundColor:
-                      password.length >= i * 3
-                        ? strength.color
-                        : Colors.surfaceBorder,
-                  },
-                ]}
-              />
-            ))}
-            <Text style={styles.strengthText}>{strength.label}</Text>
-          </View>
-        )}
+        <PasswordStrength password={password} />
       </View>
 
       <FormInput
@@ -156,23 +160,14 @@ export default function RegisterScreen() {
         onPress={handleRegister}
       />
 
-      <View style={styles.switchRow}>
-        <Text style={styles.switchLabel}>Already have an account? </Text>
-        <TouchableOpacity
-          onPress={() => router.push("/(auth)/login")}
-          disabled={isSubmitting}
-        >
-          <Text style={styles.switchLink}>Sign In</Text>
-        </TouchableOpacity>
-      </View>
+      <AuthSwitchPrompt
+        message="Already have an account?"
+        linkLabel="Sign In"
+        onPress={() => router.push("/(auth)/login")}
+        disabled={isSubmitting}
+      />
     </AuthLayout>
   );
-}
-
-function strengthOf(password: string): { label: string; color: string } {
-  if (password.length >= 10) return { label: "Strong", color: Colors.success };
-  if (password.length >= 6) return { label: "Fair", color: Colors.warning };
-  return { label: "Weak", color: Colors.error };
 }
 
 const styles = StyleSheet.create({
@@ -189,11 +184,4 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     minWidth: 36,
   },
-  switchRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  switchLabel: { color: Colors.textMuted, fontSize: 14 },
-  switchLink: { color: Colors.primary, fontSize: 14, fontWeight: "700" },
 });

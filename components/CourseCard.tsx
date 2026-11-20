@@ -45,11 +45,88 @@ const BookmarkButton = memo(
 );
 BookmarkButton.displayName = "BookmarkButton";
 
+const Thumbnail = memo(({ course }: { course: Course }) => {
+  const [imgLoading, setImgLoading] = useState(true);
+  const [imgError, setImgError] = useState(false);
+
+  return (
+    <View style={styles.thumbWrap}>
+      {imgLoading && !imgError && (
+        <View style={styles.imgPlaceholder}>
+          <ActivityIndicator color={Colors.primary} size="small" />
+        </View>
+      )}
+
+      {imgError && (
+        <View style={styles.imgError}>
+          <Text style={{ fontSize: 40 }}>📚</Text>
+          <Text style={styles.imgErrorText}>{course.category}</Text>
+        </View>
+      )}
+
+      {!imgError && (
+        <Image
+          source={{ uri: course.thumbnail }}
+          style={[styles.thumb, imgLoading && { opacity: 0 }]}
+          resizeMode="cover"
+          onLoad={() => setImgLoading(false)}
+          onError={() => {
+            setImgError(true);
+            setImgLoading(false);
+          }}
+        />
+      )}
+
+      <View style={styles.thumbOverlay} />
+
+      <View style={styles.thumbTop}>
+        <View style={styles.catBadge}>
+          <Text style={styles.catText} numberOfLines={1}>
+            {course.category}
+          </Text>
+        </View>
+        <BookmarkButton courseId={course.id} course={course} />
+      </View>
+
+      <View style={styles.thumbBottom}>
+        <View style={[styles.pill, styles.ratingPill]}>
+          <Ionicons name="star" size={10} color={Colors.amber} />
+          <Text style={styles.ratingText}>
+            {typeof course.rating === "number"
+              ? course.rating.toFixed(1)
+              : "4.5"}
+          </Text>
+        </View>
+        <View style={[styles.pill, styles.stockPill]}>
+          <Ionicons name="people-outline" size={10} color={Colors.textMuted} />
+          <Text style={styles.stockText}>{course.stock} seats</Text>
+        </View>
+      </View>
+    </View>
+  );
+});
+Thumbnail.displayName = "Thumbnail";
+
+const InstructorRow = memo(({ course }: { course: Course }) => (
+  <View style={styles.instructorRow}>
+    <Image
+      source={{ uri: course.instructorAvatar }}
+      style={styles.avatar}
+      defaultSource={{ uri: getAvatarUrl("default") }}
+    />
+    <Text style={styles.instructorName} numberOfLines={1}>
+      {course.instructorName}
+    </Text>
+    <View style={styles.dot} />
+    <Text style={styles.categoryLabel} numberOfLines={1}>
+      {course.category}
+    </Text>
+  </View>
+));
+InstructorRow.displayName = "InstructorRow";
+
 const CourseCard = memo(
   ({ course }: { course: Course }) => {
-    const [imgLoading, setImgLoading] = useState(true);
-    const [imgError, setImgError] = useState(false);
-
     const handlePress = useCallback(() => {
       if (!course.id || course.id === "undefined") return;
       router.push(`/course/${course.id}`);
@@ -60,102 +137,20 @@ const CourseCard = memo(
         onPress={handlePress}
         style={({ pressed }) => [styles.card, pressed && styles.cardPressed]}
       >
-        {/* ── Thumbnail ── */}
-        <View style={styles.thumbWrap}>
-          {/* Placeholder shown while loading */}
-          {imgLoading && !imgError && (
-            <View style={styles.imgPlaceholder}>
-              <ActivityIndicator color={Colors.primary} size="small" />
-            </View>
-          )}
+        <Thumbnail course={course} />
 
-          {/* Error fallback */}
-          {imgError && (
-            <View style={styles.imgError}>
-              <Text style={{ fontSize: 40 }}>📚</Text>
-              <Text style={styles.imgErrorText}>{course.category}</Text>
-            </View>
-          )}
-
-          {!imgError && (
-            <Image
-              source={{ uri: course.thumbnail }}
-              style={[styles.thumb, imgLoading && { opacity: 0 }]}
-              resizeMode="cover"
-              onLoad={() => setImgLoading(false)}
-              onError={() => {
-                setImgError(true);
-                setImgLoading(false);
-              }}
-            />
-          )}
-
-          {/* Dark overlay */}
-          <View style={styles.thumbOverlay} />
-
-          {/* Top row */}
-          <View style={styles.thumbTop}>
-            <View style={styles.catBadge}>
-              <Text style={styles.catText} numberOfLines={1}>
-                {course.category}
-              </Text>
-            </View>
-            <BookmarkButton courseId={course.id} course={course} />
-          </View>
-
-          {/* Bottom row */}
-          <View style={styles.thumbBottom}>
-            <View style={styles.ratingPill}>
-              <Ionicons name="star" size={10} color="#FBBF24" />
-              <Text style={styles.ratingText}>
-                {typeof course.rating === "number"
-                  ? course.rating.toFixed(1)
-                  : "4.5"}
-              </Text>
-            </View>
-            <View style={styles.stockPill}>
-              <Ionicons
-                name="people-outline"
-                size={10}
-                color={Colors.textMuted}
-              />
-              <Text style={styles.stockText}>{course.stock} seats</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ── Body ── */}
         <View style={styles.body}>
-          {/* Instructor */}
-          <View style={styles.instructorRow}>
-            <Image
-              source={{ uri: course.instructorAvatar }}
-              style={styles.avatar}
-              defaultSource={{ uri: getAvatarUrl("default") }}
-            />
-            <Text style={styles.instructorName} numberOfLines={1}>
-              {course.instructorName}
-            </Text>
-            <View style={styles.dot} />
-            <Text style={styles.categoryLabel} numberOfLines={1}>
-              {course.category}
-            </Text>
-          </View>
+          <InstructorRow course={course} />
 
-          {/* Title */}
           <Text style={styles.title} numberOfLines={2}>
             {course.title}
           </Text>
-
-          {/* Description */}
           <Text style={styles.desc} numberOfLines={2}>
             {course.description}
           </Text>
 
-          {/* Divider */}
           <View style={styles.divider} />
 
-          {/* Footer */}
           <View style={styles.footer}>
             <View>
               <Text style={styles.priceLabel}>PRICE</Text>
@@ -247,7 +242,7 @@ const styles = StyleSheet.create({
     maxWidth: 140,
   },
   catText: {
-    color: "#fff",
+    color: Colors.white,
     fontSize: 10,
     fontWeight: "700",
     textTransform: "capitalize",
@@ -276,7 +271,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
   },
-  ratingPill: {
+  pill: {
     flexDirection: "row",
     alignItems: "center",
     gap: 3,
@@ -285,18 +280,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 20,
     borderWidth: 1,
+  },
+  ratingPill: {
     borderColor: withAlpha(Colors.amber, 0.2),
   },
-  ratingText: { color: "#FBBF24", fontSize: 10, fontWeight: "700" },
+  ratingText: { color: Colors.amber, fontSize: 10, fontWeight: "700" },
   stockPill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-    backgroundColor: withAlpha(Colors.bg, 0.82),
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 20,
-    borderWidth: 1,
     borderColor: withAlpha(Colors.white, 0.08),
   },
   stockText: { color: Colors.textMuted, fontSize: 10 },
@@ -377,7 +366,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.primaryLight,
   },
-  ctaText: { color: "#fff", fontSize: 12, fontWeight: "700" },
+  ctaText: { color: Colors.white, fontSize: 12, fontWeight: "700" },
 });
 
 export default CourseCard;

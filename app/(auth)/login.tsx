@@ -1,21 +1,14 @@
 import AuthLayout from "@/components/AuthLayout";
+import AuthSwitchPrompt from "@/components/AuthSwitchPrompt";
 import FormInput from "@/components/FormInput";
 import SubmitButton from "@/components/SubmitButton";
 import { extractErrorMessage } from "@/services/authService";
 import { useAuthStore } from "@/store/authStore";
 import { router } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
-import {
-  Keyboard,
-  StyleSheet,
-  Text,
-  TextInput as RNTextInput,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Keyboard, TextInput as RNTextInput } from "react-native";
 import { showError } from "@/utils/toast";
 import { validateEmail } from "@/utils/validation";
-import { Colors } from "@/constants/colors";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -86,25 +79,12 @@ export default function LoginScreen() {
         onPress={handleLogin}
       />
 
-      <View style={styles.switchRow}>
-        <Text style={styles.switchLabel}>Don't have an account? </Text>
-        <TouchableOpacity
-          onPress={() => router.push("/(auth)/register")}
-          disabled={isSubmitting}
-        >
-          <Text style={styles.switchLink}>Sign Up</Text>
-        </TouchableOpacity>
-      </View>
+      <AuthSwitchPrompt
+        message="Don't have an account?"
+        linkLabel="Sign Up"
+        onPress={() => router.push("/(auth)/register")}
+        disabled={isSubmitting}
+      />
     </AuthLayout>
   );
 }
-
-const styles = StyleSheet.create({
-  switchRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  switchLabel: { color: Colors.textMuted, fontSize: 14 },
-  switchLink: { color: Colors.primary, fontSize: 14, fontWeight: "700" },
-});
