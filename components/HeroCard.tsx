@@ -103,10 +103,15 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: Colors.surfaceBorder,
+    borderColor: withAlpha(Colors.primaryGlow, 0.25),
     overflow: "hidden",
     minHeight: 156,
     position: "relative",
+    shadowColor: Colors.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 10,
   },
   blob1: {
     position: "absolute",
@@ -115,7 +120,7 @@ const styles = StyleSheet.create({
     width: 170,
     height: 170,
     borderRadius: 85,
-    backgroundColor: withAlpha(Colors.primary, 0.13),
+    backgroundColor: withAlpha(Colors.primary, 0.22),
   },
   blob2: {
     position: "absolute",
@@ -124,7 +129,7 @@ const styles = StyleSheet.create({
     width: 130,
     height: 130,
     borderRadius: 65,
-    backgroundColor: withAlpha(Colors.accent, 0.09),
+    backgroundColor: withAlpha(Colors.accent, 0.16),
   },
   blob3: {
     position: "absolute",
@@ -133,7 +138,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: withAlpha(Colors.primary, 0.06),
+    backgroundColor: withAlpha(Colors.primaryGlow, 0.12),
   },
   fi: {
     position: "absolute",

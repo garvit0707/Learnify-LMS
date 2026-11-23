@@ -7,11 +7,11 @@ export const Colors = {
   accentDark: "#0891B2",
 
   // Backgrounds
-  bg: "#0A0A0F",
-  surface: "#12121A",
-  surfaceElevated: "#1A1A26",
-  surfaceBorder: "#252535",
-  card: "#161620",
+  bg: "#07070D",
+  surface: "#101019",
+  surfaceElevated: "#181828",
+  surfaceBorder: "#2A2A44",
+  card: "#141422",
 
   // Text
   text: "#F0F0FF",
@@ -27,7 +27,7 @@ export const Colors = {
   black: "#000000",
 
   // Supplementary
-  primaryGlow: "#A78BFA",
+  primaryGlow: "#C4B5FD",
   amber: "#FBBF24",
 };
 
